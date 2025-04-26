@@ -1,7 +1,26 @@
 ﻿@page "/"
+@inject CheckInsService CheckInsService
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+@if (!isLoading)
+{
+    @foreach(var user in users)
+    {
+       <p>@user</p> 
+    }
+}
+
+@code{
+    bool isLoading = true;
+    string[] users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await CheckInsService.GetUsers();
+        isLoading = false;
+    }
+}

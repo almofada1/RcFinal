@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using RcFinal.Components;
 using RcFinal.Components.Account;
 using RcFinal.Data;
+using RcFinal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,11 +22,11 @@ builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuth
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true;
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 5;
     options.Password.RequireLowercase = false;
@@ -39,6 +40,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Custom services
+builder.Services.AddSingleton<DapperContext>();
+builder.Services.AddScoped<CheckInsService>();
 
 var app = builder.Build();
 
