@@ -1,0 +1,170 @@
+﻿@implements IDisposable
+@inject NavigationManager NavigationManager
+
+<!-- Offcanvas Menu Section Begin -->
+<div class="offcanvas-menu-overlay"></div>
+<div class="canvas-open">
+    <i class="icon_menu"></i>
+</div>
+<div class="offcanvas-menu-wrapper">
+    <div class="canvas-close">
+        <i class="icon_close"></i>
+    </div>
+    <div class="search-icon  search-switch">
+        <i class="icon_search"></i>
+    </div>
+    <nav class="mainmenu mobile-menu">
+        <ul>
+            <li class="active"><a href="./index.html">Home</a></li>
+            <li><a href="./rooms.html">Rooms</a></li>
+            <li><a href="./about-us.html">About Us</a></li>
+            <li>
+                <a href="./pages.html">Pages</a>
+                <ul class="dropdown">
+                    <li><a href="./room-details.html">Room Details</a></li>
+                    <li><a href="#">Deluxe Room</a></li>
+                    <li><a href="#">Family Room</a></li>
+                    <li><a href="#">Premium Room</a></li>
+                </ul>
+            </li>
+            <li><a href="./blog.html">News</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+        </ul>
+    </nav>
+    <div id="mobile-menu-wrap"></div>
+    <div class="top-social">
+        <a href="#"><i class="fa fa-facebook"></i></a>
+        <a href="#"><i class="fa fa-twitter"></i></a>
+        <a href="#"><i class="fa fa-tripadvisor"></i></a>
+        <a href="#"><i class="fa fa-instagram"></i></a>
+    </div>
+    <ul class="top-widget">
+        <li><i class="fa fa-phone"></i> +351 965 833 214</li>
+        <li><i class="fa fa-envelope"></i> fragalha@hotel.com</li>
+    </ul>
+</div>
+<!-- Offcanvas Menu Section End -->
+<!-- Header Section Begin -->
+<header class="header-section">
+    <div class="top-nav">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <ul class="tn-left">
+                        <li><i class="fa fa-phone"></i> +351 965 833 214</li>
+                        <li><i class="fa fa-envelope"></i> fragalha@hotel.com</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6">
+                    <div class="tn-right">
+                        <div class="top-social">
+                            <a href="#"><i class="fa fa-facebook"></i></a>
+                            <a href="#"><i class="fa fa-twitter"></i></a>
+                            <a href="#"><i class="fa fa-tripadvisor"></i></a>
+                            <a href="#"><i class="fa fa-instagram"></i></a>
+                        </div>
+                        <a href="#" class="bk-btn">Booking Now</a>
+                        <AuthorizeView>
+                            <Authorized>
+                                <div class="nav-item px-3">
+                                    <NavLink class="nav-link" href="Account/Manage">
+                                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                                    </NavLink>
+                                </div>
+                                <div class="nav-item px-3">
+                                    <form action="Account/Logout" method="post">
+                                        <AntiforgeryToken />
+                                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                        <button type="submit" class="nav-link">
+                                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </Authorized>
+                            <NotAuthorized>
+                                <div class="nav-item px-3">
+                                    <NavLink class="nav-link" href="Account/Register">
+                                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                    </NavLink>
+                                </div>
+                                <div class="nav-item px-3">
+                                    <NavLink class="nav-link" href="Account/Login">
+                                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                                    </NavLink>
+                                </div>
+                            </NotAuthorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="menu-item">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-2">
+                    <div class="logo">
+                        <a href="">
+                            <img src="img/logo.png" alt="">
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                    <div class="nav-menu">
+                        <nav class="mainmenu">
+                            <ul>
+                                <li class="nav-item">
+                                    <a href="" class="nav-link"
+                                       @onclick="@(async () => NavigationManager.NavigateTo("", forceLoad: true))"> Home
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="" class="nav-link"
+                                       @onclick="@(async () => NavigationManager.NavigateTo("about-us", forceLoad: true))">
+                                        About Us
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="" class="nav-link"
+                                       @onclick="@(async () => NavigationManager.NavigateTo("news", forceLoad: true))">
+                                        News
+                                    </a>
+                                </li>
+                                <li>
+                                    <NavLink href="contact" Match="NavLinkMatch.Prefix">
+                                        Contact
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </nav>
+                        <div class="nav-right search-switch">
+                            <i class="icon_search"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- Header End -->
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
