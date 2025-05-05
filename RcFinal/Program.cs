@@ -43,7 +43,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 // Custom services
 builder.Services.AddSingleton<DapperContext>();
-builder.Services.AddScoped<CheckInsService>();
+builder.Services.AddScoped<ReservasService>();
 
 var app = builder.Build();
 

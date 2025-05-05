@@ -49,51 +49,40 @@
     <div class="top-nav">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-8">
                     <ul class="tn-left">
                         <li><i class="fa fa-phone"></i> +351 965 833 214</li>
                         <li><i class="fa fa-envelope"></i> fragalha@hotel.com</li>
                     </ul>
                 </div>
-                <div class="col-lg-6">
+                <div class="col-lg-4">
                     <div class="tn-right">
-                        <div class="top-social">
-                            <a href="#"><i class="fa fa-facebook"></i></a>
-                            <a href="#"><i class="fa fa-twitter"></i></a>
-                            <a href="#"><i class="fa fa-tripadvisor"></i></a>
-                            <a href="#"><i class="fa fa-instagram"></i></a>
-                        </div>
-                        <a href="#" class="bk-btn">Booking Now</a>
-                        <AuthorizeView>
-                            <Authorized>
-                                <div class="nav-item px-3">
-                                    <NavLink class="nav-link" href="Account/Manage">
-                                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        <div class="d-flex align-items-center">
+                            <a href="" class="bk-btn me-3">Book</a>
+
+                            <AuthorizeView>
+                                <Authorized>
+                                    <NavLink class="btn" href="Account/Manage">
+                                        @context.User.Identity?.Name
                                     </NavLink>
-                                </div>
-                                <div class="nav-item px-3">
-                                    <form action="Account/Logout" method="post">
+                                    <form action="Account/Logout" method="post" class="d-inline me-2">
                                         <AntiforgeryToken />
                                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                        <button type="submit" class="nav-link">
-                                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                        <button type="submit" class="btn">
+                                            Logout
                                         </button>
                                     </form>
-                                </div>
-                            </Authorized>
-                            <NotAuthorized>
-                                <div class="nav-item px-3">
-                                    <NavLink class="nav-link" href="Account/Register">
-                                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                </Authorized>
+                                <NotAuthorized>
+                                    <NavLink class="btn" href="Account/Register">
+                                        Register
                                     </NavLink>
-                                </div>
-                                <div class="nav-item px-3">
-                                    <NavLink class="nav-link" href="Account/Login">
-                                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                                    <NavLink class="btn" href="Account/Login">
+                                        Login
                                     </NavLink>
-                                </div>
-                            </NotAuthorized>
-                        </AuthorizeView>
+                                </NotAuthorized>
+                            </AuthorizeView>
+                        </div>
                     </div>
                 </div>
             </div>
