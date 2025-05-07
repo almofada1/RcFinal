@@ -47,6 +47,11 @@ builder.Services.AddScoped<ReservasService>();
 
 var app = builder.Build();
 
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();       // For any MVC controllers you added
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -69,6 +74,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
 
 using (var scope = app.Services.CreateScope())
 {
