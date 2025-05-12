@@ -103,21 +103,19 @@
                         <nav class="mainmenu">
                             <ul>
                                 <li class="nav-item">
-                                    <a href="" class="nav-link"
-                                       @onclick="@(async () => NavigationManager.NavigateTo("", forceLoad: true))"> Home
-                                    </a>
+                                    <NavLink href="" Match="NavLinkMatch.Prefix">
+                                        Home
+                                    </NavLink>
                                 </li>
                                 <li>
-                                    <a href="" class="nav-link"
-                                       @onclick="@(async () => NavigationManager.NavigateTo("about-us", forceLoad: true))">
+                                    <NavLink href="about-us" Match="NavLinkMatch.Prefix">
                                         About Us
-                                    </a>
+                                    </NavLink>
                                 </li>
                                 <li>
-                                    <a href="" class="nav-link"
-                                       @onclick="@(async () => NavigationManager.NavigateTo("news", forceLoad: true))">
+                                    <NavLink href="News" Match="NavLinkMatch.Prefix">
                                         News
-                                    </a>
+                                    </NavLink>
                                 </li>
                                 <li>
                                     <NavLink href="contact" Match="NavLinkMatch.Prefix">

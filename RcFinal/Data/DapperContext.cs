@@ -18,6 +18,12 @@ public class DapperContext
         await conn.OpenAsync();
         return await conn.QueryAsync<T>(sql, parameters);
     }
+    public async Task<T> QuerySingleAsync<T>(string sql, object? parameters = null)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        return await conn.QuerySingleAsync<T>(sql, parameters);
+    }
 
     public async Task<int> ExecuteAsync(string sql, object? parameters = null)
     {

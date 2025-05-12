@@ -1,5 +1,6 @@
 ﻿@page "/"
-@inject ReservasService CheckInsService
+@using RcFinal.Models
+@inject ReservasService ReservasService
 @layout Layout.HotelLayout
 
 <PageTitle>Home</PageTitle>
@@ -19,33 +20,32 @@
             <div class="col-xl-4 col-lg-5 offset-xl-2 offset-lg-1">
                 <div class="booking-form">
                     <h3>Booking Your Hotel</h3>
-                    <form action="#">
+                    <EditForm Model="reserva" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
                         <div class="check-date">
                             <label for="date-in">Check In:</label>
-                            <input type="text" class="date-input" id="date-in">
-                            <i class="icon_calendar"></i>
+                            <InputDate @bind-Value="reserva.CheckIn" id="date-in" class="form-control" />
                         </div>
+
                         <div class="check-date">
                             <label for="date-out">Check Out:</label>
-                            <input type="text" class="date-input" id="date-out">
-                            <i class="icon_calendar"></i>
+                            <InputDate @bind-Value="reserva.CheckOut" id="date-out" class="form-control" />
                         </div>
+
                         <div class="select-option">
                             <label for="guest">Guests:</label>
-                            <select id="guest">
-                                <option value="">2 Adults</option>
-                                <option value="">3 Adults</option>
-                            </select>
+                            <InputNumber @bind-Value="reserva.Guests" id="guest" class="form-control" />
                         </div>
-                        <div class="select-option">
-                            <label for="room">Room:</label>
-                            <select id="room">
-                                <option value="">1 Room</option>
-                                <option value="">2 Room</option>
-                            </select>
+
+                        <div class="mb-3">
+                            <label for="email">Email:</label>
+                            <InputText @bind-Value="reserva.Email" id="email" class="form-control" />
                         </div>
-                        <button type="submit">Check Availability</button>
-                    </form>
+
+                        <button type="submit" class="btn btn-primary">Check Availability</button>
+                    </EditForm>
                 </div>
             </div>
         </div>
@@ -401,3 +401,65 @@
     </div>
 </section>
 <!-- Blog Section End -->
+@code {
+    private string? errorMessage;
+    private List<Room> rooms = new();
+    private int selectedRoomId = -1;
+    private Reservas reserva = new()
+    {
+        CheckIn = DateTime.Today,
+        CheckOut = DateTime.Today.AddDays(1),
+        Guests = 2,
+        Email = ""
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = (await ReservasService.GetRoomsAsync()).ToList();
+    }
+
+    private async Task AutoAssignRoom()
+    {
+        // filter by capacity
+        var candidates = rooms
+          .Where(r => r.Capacity >= reserva.Guests)
+          .OrderBy(r => r.Capacity);
+
+        foreach (var room in candidates)
+        {
+            // build a quick test reserva
+            var test = new Reservas
+            {
+                CheckIn = reserva.CheckIn,
+                CheckOut = reserva.CheckOut,
+                Guests = reserva.Guests,
+                RoomId = room.RoomId,
+                Email = reserva.Email
+            };
+
+            // check overlap
+            if (!await ReservasService.HasOverlapAsync(test))
+            {
+                selectedRoomId = room.RoomId;
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await AutoAssignRoom();
+
+        if (selectedRoomId == -1)
+        {
+            errorMessage = "Sorry, there are no rooms available for your dates and guest count.";
+            return;
+        }
+        else
+        {
+            reserva.RoomId = selectedRoomId;
+
+            await ReservasService.SaveReserva(reserva);
+            // ...confirmation... 
+        }
+    }
+}
