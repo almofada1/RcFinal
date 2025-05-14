@@ -6,16 +6,19 @@ namespace RcFinal.Data;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
-    public DbSet<Room> Rooms { get; set; }
+    public DbSet<Quartos> Quartos { get; set; }
     public DbSet<Reservas> Reservas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Seed some experimental rooms
-        modelBuilder.Entity<Room>().HasData(
-            new Room { RoomId = 8, Capacity = 2 },
-            new Room { RoomId = 9, Capacity = 3 },
-            new Room { RoomId = 10, Capacity = 4 }
+        modelBuilder.Entity<Quartos>().ToTable("Quartos").HasData(
+            new Quartos { RoomId = 1, Capacidade = 1 },
+            new Quartos { RoomId = 2, Capacidade = 1 },
+            new Quartos { RoomId = 3, Capacidade = 2 },
+            new Quartos { RoomId = 4, Capacidade = 2 },
+            new Quartos { RoomId = 5, Capacidade = 3 },
+            new Quartos { RoomId = 6, Capacidade = 3 },
+            new Quartos { RoomId = 7, Capacidade = 4 }
         );
 
         base.OnModelCreating(modelBuilder);

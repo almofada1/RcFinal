@@ -403,7 +403,7 @@
 <!-- Blog Section End -->
 @code {
     private string? errorMessage;
-    private List<Room> rooms = new();
+    private List<Quartos> rooms = new();
     private int selectedRoomId = -1;
     private Reservas reserva = new()
     {
@@ -415,15 +415,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        rooms = (await ReservasService.GetRoomsAsync()).ToList();
+        rooms = (await ReservasService.GetQuartosAsync()).ToList<Quartos>();
     }
 
     private async Task AutoAssignRoom()
     {
         // filter by capacity
         var candidates = rooms
-          .Where(r => r.Capacity >= reserva.Guests)
-          .OrderBy(r => r.Capacity);
+          .Where(r => r.Capacidade >= reserva.Guests)
+          .OrderBy(r => r.Capacidade);
 
         foreach (var room in candidates)
         {

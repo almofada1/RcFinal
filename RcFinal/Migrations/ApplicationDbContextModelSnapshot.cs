@@ -220,7 +220,61 @@ namespace RcFinal.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Reservas", b =>
+            modelBuilder.Entity("RcFinal.Models.Quartos", b =>
+                {
+                    b.Property<int>("RoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("RoomId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoomId"));
+
+                    b.Property<int>("Capacidade")
+                        .HasColumnType("int");
+
+                    b.HasKey("RoomId");
+
+                    b.ToTable("Quartos", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            RoomId = 1,
+                            Capacidade = 1
+                        },
+                        new
+                        {
+                            RoomId = 2,
+                            Capacidade = 1
+                        },
+                        new
+                        {
+                            RoomId = 3,
+                            Capacidade = 2
+                        },
+                        new
+                        {
+                            RoomId = 4,
+                            Capacidade = 2
+                        },
+                        new
+                        {
+                            RoomId = 5,
+                            Capacidade = 3
+                        },
+                        new
+                        {
+                            RoomId = 6,
+                            Capacidade = 3
+                        },
+                        new
+                        {
+                            RoomId = 7,
+                            Capacidade = 4
+                        });
+                });
+
+            modelBuilder.Entity("RcFinal.Models.Reservas", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -241,10 +295,12 @@ namespace RcFinal.Migrations
                     b.Property<int>("Guests")
                         .HasColumnType("int");
 
-                    b.Property<int>("Rooms")
+                    b.Property<int>("RoomId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
 
                     b.ToTable("Reservas");
                 });
@@ -298,6 +354,17 @@ namespace RcFinal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("RcFinal.Models.Reservas", b =>
+                {
+                    b.HasOne("RcFinal.Models.Quartos", "Quartos")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Quartos");
                 });
 #pragma warning restore 612, 618
         }

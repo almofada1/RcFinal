@@ -52,10 +52,10 @@ public class ReservasService
         var sql = "DELETE FROM Reservas WHERE Id = @Id";
         await _db.ExecuteAsync(sql, new { Id = id });
     }
-    public async Task<IEnumerable<Room>> GetRoomsAsync()
+    public async Task<IEnumerable<Quartos>> GetQuartosAsync()
     {
-        var sql = "SELECT * FROM Rooms";
-        return await _db.QueryAsync<Room>(sql);
+        var sql = "SELECT * FROM Quartos";
+        return await _db.QueryAsync<Quartos>(sql);
     }
 }
 
