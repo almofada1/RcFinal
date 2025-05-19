@@ -1,0 +1,137 @@
+﻿@page "/book"
+@layout Layout.HotelLayout
+
+@using Microsoft.AspNetCore.Authorization
+@using RcFinal.Models
+@using System.Security.Claims
+@inject ReservasService ReservasService
+@inject AuthenticationStateProvider AuthStateProvider
+
+@attribute [Authorize]
+
+<div class="booking-form">
+    <h3>Booking Your Hotel</h3>
+    <EditForm Model="reserva" OnValidSubmit="HandleValidSubmit" FormName="ReservaForm">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="check-date">
+            <label for="date-in">Check In:</label>
+            <InputDate @bind-Value="reserva.CheckIn" id="date-in" class="form-control" />
+        </div>
+
+        <div class="check-date">
+            <label for="date-out">Check Out:</label>
+            <InputDate @bind-Value="reserva.CheckOut" id="date-out" class="form-control" />
+        </div>
+
+        <div class="select-option">
+            <label for="guest">Guests:</label>
+            <InputNumber @bind-Value="reserva.Guests" id="guest" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label for="package">Package:</label>
+            <InputSelect @bind-Value="reserva.PackageId" id="package" class="form-control">
+                <option value="">-- select --</option>
+                @foreach (var pkg in packages)
+                {
+                    <option value="@pkg.PackageId">
+                        @pkg.Name (@pkg.PricePerNightPerGuest € / night / guest)
+                    </option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => reserva.PackageId)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Check Availability</button>
+    </EditForm>
+</div>
+
+@code {
+    private string? errorMessage;
+    private List<Package> packages = new();
+    private List<Quartos> rooms = new();
+    private int selectedRoomId = -1;
+    private Reservas reserva = new()
+        {
+            CheckIn = DateTime.Today,
+            CheckOut = DateTime.Today.AddDays(1),
+            Guests = 2,
+            Email = ""
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        rooms = (await ReservasService.GetQuartosAsync()).ToList<Quartos>();
+        packages = (await ReservasService.GetPackagesAsync()).ToList<Package>();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            // assuming you use the standard Email claim
+            reserva.Email = user.FindFirst(c => c.Type == ClaimTypes.Email)?.Value
+                         ?? user.Identity.Name!;
+        }
+    }
+
+    private async Task AutoAssignRoom()
+    {
+        // filter by capacity
+        var candidates = rooms
+          .Where(r => r.Capacidade >= reserva.Guests)
+          .OrderBy(r => r.Capacidade);
+
+        foreach (var room in candidates)
+        {
+            // build a quick test reserva
+            var test = new Reservas
+                {
+                    CheckIn = reserva.CheckIn,
+                    CheckOut = reserva.CheckOut,
+                    Guests = reserva.Guests,
+                    RoomId = room.RoomId,
+                    Email = reserva.Email
+                };
+
+            // check overlap
+            if (!await ReservasService.HasOverlapAsync(test))
+            {
+                selectedRoomId = room.RoomId;
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await AutoAssignRoom();
+        if (selectedRoomId == -1)
+        {
+            errorMessage = "No rooms available.";
+            return;
+        }
+
+        var nights = (reserva.CheckOut - reserva.CheckIn).Days;
+        reserva.RoomId = selectedRoomId;
+        reserva.TotalCost = packages
+            .First(p => p.PackageId == reserva.PackageId)
+            .PricePerNightPerGuest
+          * reserva.Guests
+          * nights;
+
+        // SAVE and grab new Id
+        var newReservaId = await ReservasService.SaveReserva(reserva);
+
+        // Create & persist cost entry
+        var costEntry = new ReservationCost
+            {
+                ReservaId = newReservaId,
+                Cost = reserva.TotalCost,
+                RecordedAt = DateTime.UtcNow
+            };
+        await ReservasService.SaveReservationCost(costEntry);
+
+        // …show confirmation…
+    }
+}

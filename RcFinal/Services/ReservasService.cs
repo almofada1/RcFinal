@@ -1,61 +1,75 @@
-﻿using RcFinal.Models;
+﻿// Services/ReservasService.cs
+using RcFinal.Models;
+using Dapper;
 
-namespace RcFinal.Services;
-
-public class ReservasService
+namespace RcFinal.Services
 {
-    private readonly DapperContext _db;
-    public ReservasService(DapperContext db)
+    public class ReservasService
     {
-        _db = db;
-    }
-    public async Task<IEnumerable<Reservas>> GetReservas()
-    {
-        var sql = "SELECT * FROM Reservas";
-        return await _db.QueryAsync<Reservas>(sql);
-    }
-    public async Task<bool> HasOverlapAsync(Reservas r)
-    {
-        var sql = @"
-        SELECT COUNT(1)
-        FROM Reservas
-        WHERE RoomId   = @RoomId
-          AND CheckIn  <  @CheckOut
-          AND CheckOut >  @CheckIn;
-        ";
+        private readonly DapperContext _db;
+        public ReservasService(DapperContext db) => _db = db;
 
-        // Returns a single int
-        var count = await _db.QuerySingleAsync<int>(sql, new
+        public async Task<IEnumerable<Quartos>> GetQuartosAsync()
         {
-            r.RoomId,
-            r.CheckIn,
-            r.CheckOut
-        });  // <-- QuerySingleAsync<T> returns T :contentReference[oaicite:1]{index=1}
+            var sql = "SELECT * FROM Quartos";
+            return await _db.QueryAsync<Quartos>(sql);
+        }
 
-        return count > 0;
-    }
-    public async Task SaveReserva(Reservas reserva)
-    {
-        if (await HasOverlapAsync(reserva))
-            throw new InvalidOperationException("That room is already booked for those dates.");
+        public async Task<IEnumerable<Package>> GetPackagesAsync()
+        {
+            var sql = "SELECT * FROM Packages";
+            return await _db.QueryAsync<Package>(sql);
+        }
 
-        var sql = @"
-        INSERT INTO Reservas
-            (CheckIn, CheckOut, Guests, RoomId, Email)
-        VALUES
-            (@CheckIn, @CheckOut, @Guests, @RoomId, @Email);";
+        public async Task<bool> HasOverlapAsync(Reservas r)
+        {
+            var sql = @"
+                SELECT COUNT(1)
+                FROM Reservas
+                WHERE RoomId   = @RoomId
+                  AND CheckIn  <  @CheckOut
+                  AND CheckOut >  @CheckIn;
+            ";
+            var count = await _db.QuerySingleAsync<int>(sql, new { r.RoomId, r.CheckIn, r.CheckOut });
+            return count > 0;
+        }
 
-        await _db.ExecuteAsync(sql, reserva);
-    }
-    public async Task DeleteReserva(int id)
-    {
-        var sql = "DELETE FROM Reservas WHERE Id = @Id";
-        await _db.ExecuteAsync(sql, new { Id = id });
-    }
-    public async Task<IEnumerable<Quartos>> GetQuartosAsync()
-    {
-        var sql = "SELECT * FROM Quartos";
-        return await _db.QueryAsync<Quartos>(sql);
+        /// <summary>
+        /// Inserts a reservation and returns its new Id.
+        /// </summary>
+        public async Task<int> SaveReserva(Reservas reserva)
+        {
+            if (await HasOverlapAsync(reserva))
+                throw new InvalidOperationException("That room is already booked for those dates.");
+
+            var sql = @"
+                INSERT INTO Reservas
+                    (CheckIn, CheckOut, Guests, RoomId, PackageId, TotalCost)
+                VALUES
+                    (@CheckIn, @CheckOut, @Guests, @RoomId, @PackageId, @TotalCost);
+                SELECT CAST(SCOPE_IDENTITY() as int);
+            ";
+
+            // Returns the newly created PK
+            var newId = await _db.QuerySingleAsync<int>(sql, reserva);
+            return newId;
+        }
+
+        public async Task SaveReservationCost(ReservationCost costEntry)
+        {
+            var sql = @"
+                INSERT INTO ReservationCost
+                    (ReservaId, Cost, RecordedAt)
+                VALUES
+                    (@ReservaId, @Cost, @RecordedAt);
+            ";
+            await _db.ExecuteAsync(sql, costEntry);
+        }
+
+        public async Task DeleteReserva(int id)
+        {
+            var sql = "DELETE FROM Reservas WHERE Id = @Id;";
+            await _db.ExecuteAsync(sql, new { Id = id });
+        }
     }
 }
-
