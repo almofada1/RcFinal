@@ -24,8 +24,6 @@ public class Reservas
     public int RoomId { get; set; }
     [ForeignKey(nameof(RoomId))]
     public Quartos Quartos { get; set; } = default!;
-
-    [Required]
     public int PackageId { get; set; }
     public Package? Package { get; set; }
 

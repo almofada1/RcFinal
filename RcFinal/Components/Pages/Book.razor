@@ -25,26 +25,28 @@
             <InputDate @bind-Value="reserva.CheckOut" id="date-out" class="form-control" />
         </div>
 
-        <div class="select-option">
+        <div class="select-option mb-3">
             <label for="guest">Guests:</label>
-            <InputNumber @bind-Value="reserva.Guests" id="guest" class="form-control" />
+            <InputNumber @bind-Value="reserva.Guests"
+                         id="guest"
+                         class="form-control"
+                         min="1"
+                         max="5" />
+            <ValidationMessage For="@(() => reserva.Guests)" />
         </div>
 
         <div class="mb-3">
             <label for="package">Package:</label>
-            <InputSelect @bind-Value="reserva.PackageId" id="package" class="form-control">
-                <option value="">-- select --</option>
+            <select id="package" class="form-control" @onchange="OnPackageChanged">
+                <option value="">-- Select a package --</option>
                 @foreach (var pkg in packages)
                 {
-                    <option value="@pkg.PackageId">
-                        @pkg.Name (@pkg.PricePerNightPerGuest € / night / guest)
-                    </option>
+                    <option value="@pkg.Name">@pkg.Name (@pkg.PricePerNightPerGuest € / night / guest)</option>
                 }
-            </InputSelect>
-            <ValidationMessage For="@(() => reserva.PackageId)" />
+            </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Check Availability</button>
+        <button type="submit" class="btn btn-primary">Book now</button>
     </EditForm>
 </div>
 
@@ -57,35 +59,38 @@
         {
             CheckIn = DateTime.Today,
             CheckOut = DateTime.Today.AddDays(1),
-            Guests = 2,
-            Email = ""
+            Guests = 1,
         };
+    private string pkgName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        rooms = (await ReservasService.GetQuartosAsync()).ToList<Quartos>();
-        packages = (await ReservasService.GetPackagesAsync()).ToList<Package>();
+        rooms = (await ReservasService.GetQuartosAsync()).ToList();
+        packages = (await ReservasService.GetPackagesAsync()).ToList();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         if (user.Identity?.IsAuthenticated == true)
         {
-            // assuming you use the standard Email claim
-            reserva.Email = user.FindFirst(c => c.Type == ClaimTypes.Email)?.Value
-                         ?? user.Identity.Name!;
+            reserva.Email = user.FindFirst(ClaimTypes.Email)?.Value
+                                 ?? user.Identity.Name
+                                 ?? throw new InvalidOperationException("Authenticated user has no email claim.");
         }
     }
+    private void OnPackageChanged(ChangeEventArgs e)
+    {
+        pkgName = e.Value?.ToString();
+    }
+
 
     private async Task AutoAssignRoom()
     {
-        // filter by capacity
         var candidates = rooms
-          .Where(r => r.Capacidade >= reserva.Guests)
-          .OrderBy(r => r.Capacidade);
+            .Where(r => r.Capacidade == reserva.Guests)
+            .OrderBy(r => r.Capacidade);
 
         foreach (var room in candidates)
         {
-            // build a quick test reserva
             var test = new Reservas
                 {
                     CheckIn = reserva.CheckIn,
@@ -95,10 +100,10 @@
                     Email = reserva.Email
                 };
 
-            // check overlap
             if (!await ReservasService.HasOverlapAsync(test))
             {
                 selectedRoomId = room.RoomId;
+                return;
             }
         }
     }
@@ -112,18 +117,19 @@
             return;
         }
 
+        var selectedPackage = packages.FirstOrDefault(p => p.Name == pkgName);
+        if (selectedPackage == null)
+        {
+            errorMessage = "Invalid package selected.";
+            return;
+        }
+
         var nights = (reserva.CheckOut - reserva.CheckIn).Days;
         reserva.RoomId = selectedRoomId;
-        reserva.TotalCost = packages
-            .First(p => p.PackageId == reserva.PackageId)
-            .PricePerNightPerGuest
-          * reserva.Guests
-          * nights;
+        reserva.TotalCost = selectedPackage.PricePerNightPerGuest * reserva.Guests * nights;
 
-        // SAVE and grab new Id
         var newReservaId = await ReservasService.SaveReserva(reserva);
 
-        // Create & persist cost entry
         var costEntry = new ReservationCost
             {
                 ReservaId = newReservaId,
