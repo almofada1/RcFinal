@@ -222,11 +222,8 @@ namespace RcFinal.Migrations
 
             modelBuilder.Entity("RcFinal.Models.Package", b =>
                 {
-                    b.Property<int>("PackageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PackageId"));
+                    b.Property<string>("PackageId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -239,6 +236,32 @@ namespace RcFinal.Migrations
                     b.HasKey("PackageId");
 
                     b.ToTable("Packages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            PackageId = "1",
+                            Name = "Room Only",
+                            PricePerNightPerGuest = 20m
+                        },
+                        new
+                        {
+                            PackageId = "2",
+                            Name = "Bed & Breakfast",
+                            PricePerNightPerGuest = 35m
+                        },
+                        new
+                        {
+                            PackageId = "3",
+                            Name = "Half Board",
+                            PricePerNightPerGuest = 50m
+                        },
+                        new
+                        {
+                            PackageId = "4",
+                            Name = "All-Inclusive",
+                            PricePerNightPerGuest = 60m
+                        });
                 });
 
             modelBuilder.Entity("RcFinal.Models.Quartos", b =>
@@ -295,7 +318,7 @@ namespace RcFinal.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Reservas", b =>
+            modelBuilder.Entity("RcFinal.Models.Reservas", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -316,8 +339,8 @@ namespace RcFinal.Migrations
                     b.Property<int>("Guests")
                         .HasColumnType("int");
 
-                    b.Property<int>("PackageId")
-                        .HasColumnType("int");
+                    b.Property<string>("PackageId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("RoomId")
                         .HasColumnType("int");
@@ -331,7 +354,31 @@ namespace RcFinal.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("Reservas", (string)null);
+                    b.ToTable("Reservas");
+                });
+
+            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
+                {
+                    b.Property<int>("ReservationCostId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationCostId"));
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReservaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReservationCostId");
+
+                    b.HasIndex("ReservaId");
+
+                    b.ToTable("ReservationCost");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -385,13 +432,11 @@ namespace RcFinal.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Reservas", b =>
+            modelBuilder.Entity("RcFinal.Models.Reservas", b =>
                 {
                     b.HasOne("RcFinal.Models.Package", "Package")
                         .WithMany()
-                        .HasForeignKey("PackageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PackageId");
 
                     b.HasOne("RcFinal.Models.Quartos", "Quartos")
                         .WithMany()
@@ -402,6 +447,17 @@ namespace RcFinal.Migrations
                     b.Navigation("Package");
 
                     b.Navigation("Quartos");
+                });
+
+            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
+                {
+                    b.HasOne("RcFinal.Models.Reservas", "Reserva")
+                        .WithMany()
+                        .HasForeignKey("ReservaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reserva");
                 });
 #pragma warning restore 612, 618
         }

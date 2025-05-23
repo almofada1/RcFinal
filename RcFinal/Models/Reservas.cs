@@ -3,6 +3,7 @@ using RcFinal.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
+namespace RcFinal.Models;
 public class Reservas
 {
     [Key]
@@ -24,7 +25,7 @@ public class Reservas
     public int RoomId { get; set; }
     [ForeignKey(nameof(RoomId))]
     public Quartos Quartos { get; set; } = default!;
-    public int PackageId { get; set; }
+    public string? PackageId { get; set; }
     public Package? Package { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]

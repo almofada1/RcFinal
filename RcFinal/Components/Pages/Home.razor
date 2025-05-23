@@ -2,6 +2,9 @@
 @using RcFinal.Models
 @inject ReservasService ReservasService
 @layout Layout.HotelLayout
+@inject IToastService toastService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Home</PageTitle>
 
@@ -369,3 +372,21 @@
         </div>
     </div>
 </section>
+
+@code {
+    protected override void OnParametersSet()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("bookingSuccess", out var value) && value == "true")
+        {
+            toastService.ShowSuccess("Booking successful!");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // always re-run the "hotelPageInit" hook so your
+        // .set-bg and carousels get wired up after NavLink navigation
+        await JS.InvokeVoidAsync("hotelPageInit");
+    }
+}

@@ -12,8 +12,8 @@ using RcFinal.Data;
 namespace RcFinal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250514152706_AddReservasLogic")]
-    partial class AddReservasLogic
+    [Migration("20250522092602_ReservasTables")]
+    partial class ReservasTables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -223,6 +223,50 @@ namespace RcFinal.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("RcFinal.Models.Package", b =>
+                {
+                    b.Property<string>("PackageId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PricePerNightPerGuest")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("PackageId");
+
+                    b.ToTable("Packages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            PackageId = "1",
+                            Name = "Room Only",
+                            PricePerNightPerGuest = 20m
+                        },
+                        new
+                        {
+                            PackageId = "2",
+                            Name = "Bed & Breakfast",
+                            PricePerNightPerGuest = 35m
+                        },
+                        new
+                        {
+                            PackageId = "3",
+                            Name = "Half Board",
+                            PricePerNightPerGuest = 50m
+                        },
+                        new
+                        {
+                            PackageId = "4",
+                            Name = "All-Inclusive",
+                            PricePerNightPerGuest = 60m
+                        });
+                });
+
             modelBuilder.Entity("RcFinal.Models.Quartos", b =>
                 {
                     b.Property<int>("RoomId")
@@ -298,14 +342,46 @@ namespace RcFinal.Migrations
                     b.Property<int>("Guests")
                         .HasColumnType("int");
 
+                    b.Property<string>("PackageId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("RoomId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("TotalCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("PackageId");
 
                     b.HasIndex("RoomId");
 
                     b.ToTable("Reservas");
+                });
+
+            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
+                {
+                    b.Property<int>("ReservationCostId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationCostId"));
+
+                    b.Property<decimal>("Cost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReservaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReservationCostId");
+
+                    b.HasIndex("ReservaId");
+
+                    b.ToTable("ReservationCost");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -361,13 +437,30 @@ namespace RcFinal.Migrations
 
             modelBuilder.Entity("RcFinal.Models.Reservas", b =>
                 {
+                    b.HasOne("RcFinal.Models.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId");
+
                     b.HasOne("RcFinal.Models.Quartos", "Quartos")
                         .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Package");
+
                     b.Navigation("Quartos");
+                });
+
+            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
+                {
+                    b.HasOne("RcFinal.Models.Reservas", "Reserva")
+                        .WithMany()
+                        .HasForeignKey("ReservaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reserva");
                 });
 #pragma warning restore 612, 618
         }

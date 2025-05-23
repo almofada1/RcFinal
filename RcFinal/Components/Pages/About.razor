@@ -1,5 +1,8 @@
 ﻿@page "/about-us"
-@layout Layout.HotelLayout
+@layout HotelLayout
+@inject IJSRuntime JS
+
+<PageTitle>About Us</PageTitle>
 
 <!-- Breadcrumb Section Begin -->
 <div class="breadcrumb-section">
@@ -135,3 +138,11 @@
     </div>
 </section>
 <!-- Gallery Section End -->
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // always re-run the "hotelPageInit" hook so your
+        // .set-bg and carousels get wired up after NavLink navigation
+        await JS.InvokeVoidAsync("hotelPageInit");
+    }
+}

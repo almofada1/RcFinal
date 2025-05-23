@@ -1,13 +1,16 @@
 ﻿@page "/book"
-@layout Layout.HotelLayout
+@layout HotelLayout
+@attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
 @using RcFinal.Models
 @using System.Security.Claims
 @inject ReservasService ReservasService
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService toastService
+@inject NavigationManager Nav
 
-@attribute [Authorize]
+<PageTitle>Book</PageTitle>
 
 <div class="booking-form">
     <h3>Booking Your Hotel</h3>
@@ -37,13 +40,14 @@
 
         <div class="mb-3">
             <label for="package">Package:</label>
-            <select id="package" class="form-control" @onchange="OnPackageChanged">
-                <option value="">-- Select a package --</option>
+            <InputSelect @bind-Value="reserva.PackageId" class="form-control">
                 @foreach (var pkg in packages)
                 {
-                    <option value="@pkg.Name">@pkg.Name (@pkg.PricePerNightPerGuest € / night / guest)</option>
+                    <option value="@pkg.PackageId">@pkg.Name (@pkg.PricePerNightPerGuest € / night / guest)</option>
                 }
-            </select>
+            </InputSelect>
+
+            <ValidationMessage For="@(() => reserva.PackageId)" />
         </div>
 
         <button type="submit" class="btn btn-primary">Book now</button>
@@ -55,13 +59,15 @@
     private List<Package> packages = new();
     private List<Quartos> rooms = new();
     private int selectedRoomId = -1;
-    private Reservas reserva = new()
+
+    [SupplyParameterFromForm]
+    private Reservas reserva { get; set; } = new()
         {
             CheckIn = DateTime.Today,
             CheckOut = DateTime.Today.AddDays(1),
             Guests = 1,
+            PackageId = "1"
         };
-    private string pkgName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,15 +79,10 @@
         if (user.Identity?.IsAuthenticated == true)
         {
             reserva.Email = user.FindFirst(ClaimTypes.Email)?.Value
-                                 ?? user.Identity.Name
-                                 ?? throw new InvalidOperationException("Authenticated user has no email claim.");
+                           ?? user.Identity.Name
+                           ?? throw new InvalidOperationException("Authenticated user has no email claim.");
         }
     }
-    private void OnPackageChanged(ChangeEventArgs e)
-    {
-        pkgName = e.Value?.ToString();
-    }
-
 
     private async Task AutoAssignRoom()
     {
@@ -111,25 +112,46 @@
     private async Task HandleValidSubmit()
     {
         await AutoAssignRoom();
-        if (selectedRoomId == -1)
+        // 1. Enforce at least one night:
+        if (reserva.CheckOut <= reserva.CheckIn)
         {
-            errorMessage = "No rooms available.";
+            errorMessage = "Check-out must be at least one day after check-in.";
+            toastService.ShowWarning(errorMessage);
             return;
         }
 
-        var selectedPackage = packages.FirstOrDefault(p => p.Name == pkgName);
+        // 2. Now try to auto-assign a room
+        await AutoAssignRoom();
+        if (selectedRoomId == -1)
+        {
+            errorMessage = "No rooms available.";
+            toastService.ShowError(errorMessage);
+            return;
+        }
+
+        // 3. Package selected?
+        if (string.IsNullOrWhiteSpace(reserva.PackageId))
+        {
+            errorMessage = "Please select a package.";
+            toastService.ShowWarning(errorMessage);
+            return;
+        }
+
+        var selectedPackage = packages.FirstOrDefault(p => p.PackageId == reserva.PackageId);
         if (selectedPackage == null)
         {
             errorMessage = "Invalid package selected.";
+            toastService.ShowWarning(errorMessage);
             return;
         }
 
         var nights = (reserva.CheckOut - reserva.CheckIn).Days;
         reserva.RoomId = selectedRoomId;
-        reserva.TotalCost = selectedPackage.PricePerNightPerGuest * reserva.Guests * nights;
+        reserva.TotalCost = selectedPackage.PricePerNightPerGuest
+                            * reserva.Guests
+                            * nights;
 
         var newReservaId = await ReservasService.SaveReserva(reserva);
-
         var costEntry = new ReservationCost
             {
                 ReservaId = newReservaId,
@@ -138,6 +160,6 @@
             };
         await ReservasService.SaveReservationCost(costEntry);
 
-        // …show confirmation…
+        Nav.NavigateTo("/?bookingSuccess=true");
     }
 }

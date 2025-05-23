@@ -1,0 +1,78 @@
+﻿@page "/mybookings"
+@layout HotelLayout
+@attribute [Authorize]
+
+@inject ReservasService ReservasService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>My Bookings</PageTitle>
+
+@if (reservas == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!reservas.Any())
+{
+    <p>No bookings found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Booking ID</th>
+                <th>Room ID</th>
+                <th>Pacote</th>
+                <th>Cost</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var reserva in reservas.OrderBy(r => r.CheckIn))
+            {
+                <tr>
+                    <td>@reserva.CheckIn.ToString("yyyy-MM-dd")</td>
+                    <td>@reserva.CheckOut.ToString("yyyy-MM-dd")</td>
+                    <td>@reserva.Id</td>
+                    <td>@reserva.RoomId</td>
+                    <td>@(packageNames.TryGetValue(reserva.PackageId, out var name) ? name : "Unknown")</td>
+                    <td>@reserva.TotalCost.ToString("C")</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteReserva(reserva.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Reservas>? reservas;
+    private List<Package>? package;
+    private Dictionary<string, string> packageNames = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var packageList = await ReservasService.GetPackagesAsync();
+        package = packageList.ToList();
+        packageNames = package.ToDictionary(p => p.PackageId, p => p.Name);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            var email = user.Identity.Name;
+            reservas = (await ReservasService.GetReservasByEmail(email!)).ToList();
+        }
+    }
+
+    private async Task DeleteReserva(int id)
+    {
+        await ReservasService.DeleteReserva(id);
+        reservas = reservas?.Where(r => r.Id != id).ToList();
+    }
+}

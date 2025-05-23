@@ -6,7 +6,8 @@ namespace RcFinal.Models;
 public class Package
 {
     [Required]
-    public int? PackageId { get; set; }
+    // PackageId is a string because of InputSelect in Book.razor
+    public string? PackageId { get; set; }
     [Required, MaxLength(100)]
     public string Name { get; set; } = default!;
     [Range(0, double.MaxValue)]

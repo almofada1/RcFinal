@@ -1,5 +1,8 @@
 ﻿@page "/contact"
-@layout Layout.HotelLayout
+@layout HotelLayout
+@inject IJSRuntime JS
+
+<PageTitle>Contact</PageTitle>
 
 <!-- Contact Section Begin -->
 <section class="contact-section spad">
@@ -58,3 +61,11 @@
     </div>
 </section>
 <!-- Contact Section End -->
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // always re-run the "hotelPageInit" hook so your
+        // .set-bg and carousels get wired up after NavLink navigation
+        await JS.InvokeVoidAsync("hotelPageInit");
+    }
+}

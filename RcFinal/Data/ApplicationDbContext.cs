@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Quartos> Quartos { get; set; }
     public DbSet<Reservas> Reservas { get; set; }
     public DbSet<Package> Packages { get; set; }
+    public DbSet<ReservationCost> ReservationCost { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,6 +22,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Quartos { RoomId = 6, Capacidade = 3 },
             new Quartos { RoomId = 7, Capacidade = 4 }
         );
+
+        modelBuilder.Entity<Package>().ToTable("Packages").HasData(
+            new Package { PackageId = "1", Name = "Room Only", PricePerNightPerGuest = 20 },
+            new Package { PackageId = "2", Name = "Bed & Breakfast", PricePerNightPerGuest = 35 },
+            new Package { PackageId = "3", Name = "Half Board", PricePerNightPerGuest = 50 },
+            new Package { PackageId = "4", Name = "All-Inclusive", PricePerNightPerGuest = 60 }
+        );
+
 
         base.OnModelCreating(modelBuilder);
     }

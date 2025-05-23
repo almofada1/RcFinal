@@ -13,6 +13,23 @@
 <body>
     <Routes @rendermode="RenderModeForPage" />
     <script src="_framework/blazor.web.js"></script>
+    <script>
+    window.hotelPageInit = () => {
+      // the classic set-bg handler from the template
+      document.querySelectorAll('.set-bg').forEach(el => {
+        const bg = el.getAttribute('data-setbg');
+        if (bg) el.style.backgroundImage = `url('${bg}')`;
+      });
+      // re-init Owl Carousel (adjust selectors & options to match your template)
+      $('.hero-slider.owl-carousel').owlCarousel({
+        items: 1,
+        loop: true,
+        autoplay: true,
+        autoplayTimeout: 5000
+      });
+      // any other JS that your template normally runs on load…
+    };
+</script>
 </body>
 
 </html>

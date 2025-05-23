@@ -21,6 +21,15 @@ namespace RcFinal.Services
             return await _db.QueryAsync<Package>(sql);
         }
 
+        public async Task<IEnumerable<Reservas>> GetReservasByEmail(string email)
+        {
+            var sql = @"
+                SELECT * FROM Reservas 
+                WHERE Email = @Email;";
+            return await _db.QueryAsync<Reservas>(sql, new { Email = email });
+        }
+
+
         public async Task<bool> HasOverlapAsync(Reservas r)
         {
             var sql = @"
@@ -44,9 +53,9 @@ namespace RcFinal.Services
 
             var sql = @"
                 INSERT INTO Reservas
-                    (CheckIn, CheckOut, Guests, RoomId, PackageId, TotalCost)
+                    (CheckIn, CheckOut, Guests, Email, RoomId, PackageId, TotalCost)
                 VALUES
-                    (@CheckIn, @CheckOut, @Guests, @RoomId, @PackageId, @TotalCost);
+                    (@CheckIn, @CheckOut, @Guests, @Email, @RoomId, @PackageId, @TotalCost);
                 SELECT CAST(SCOPE_IDENTITY() as int);
             ";
 

@@ -1,95 +1,16 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
 
-<!-- Offcanvas Menu Section Begin -->
-<div class="offcanvas-menu-overlay"></div>
-<div class="canvas-open">
-    <i class="icon_menu"></i>
-</div>
-<div class="offcanvas-menu-wrapper">
-    <div class="canvas-close">
-        <i class="icon_close"></i>
-    </div>
-    <div class="search-icon  search-switch">
-        <i class="icon_search"></i>
-    </div>
-    <nav class="mainmenu mobile-menu">
-        <ul>
-            <li class="active"><a href="./index.html">Home</a></li>
-            <li><a href="./rooms.html">Rooms</a></li>
-            <li><a href="./about-us.html">About Us</a></li>
-            <li>
-                <a href="./pages.html">Pages</a>
-                <ul class="dropdown">
-                    <li><a href="./room-details.html">Quartos Details</a></li>
-                    <li><a href="#">Deluxe Quartos</a></li>
-                    <li><a href="#">Family Quartos</a></li>
-                    <li><a href="#">Premium Quartos</a></li>
-                </ul>
-            </li>
-            <li><a href="./blog.html">News</a></li>
-            <li><a href="./contact.html">Contact</a></li>
-        </ul>
-    </nav>
-    <div id="mobile-menu-wrap"></div>
-    <div class="top-social">
-        <a href="#"><i class="fa fa-facebook"></i></a>
-        <a href="#"><i class="fa fa-twitter"></i></a>
-        <a href="#"><i class="fa fa-tripadvisor"></i></a>
-        <a href="#"><i class="fa fa-instagram"></i></a>
-    </div>
-    <ul class="top-widget">
-        <li><i class="fa fa-phone"></i> +351 965 833 214</li>
-        <li><i class="fa fa-envelope"></i> fragalha@hotel.com</li>
-    </ul>
-</div>
-<!-- Offcanvas Menu Section End -->
+<style>
+    /* Show dropdown menu on hover */
+    .nav-item.dropdown:hover > .dropdown-menu {
+        display: block;
+        margin-top: 0; /* Adjust spacing if needed */
+    }
+</style>
+
 <!-- Header Section Begin -->
 <header class="header-section">
-    <div class="top-nav">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-8">
-                    <ul class="tn-left">
-                        <li><i class="fa fa-phone"></i> +351 965 833 214</li>
-                        <li><i class="fa fa-envelope"></i> fragalha@hotel.com</li>
-                    </ul>
-                </div>
-                <div class="col-lg-4">
-                    <div class="tn-right">
-                        <div class="d-flex align-items-center">
-                            <NavLink class="bk-btn me-3" href="book">
-                                Book
-                            </NavLink>
-
-                            <AuthorizeView>
-                                <Authorized>
-                                    <NavLink class="btn" href="Account/Manage">
-                                        @context.User.Identity?.Name
-                                    </NavLink>
-                                    <form action="Account/Logout" method="post" class="d-inline me-2">
-                                        <AntiforgeryToken />
-                                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                        <button type="submit" class="btn">
-                                            Logout
-                                        </button>
-                                    </form>
-                                </Authorized>
-                                <NotAuthorized>
-                                    <NavLink class="btn" href="Account/Register">
-                                        Register
-                                    </NavLink>
-                                    <NavLink class="btn" href="Account/Login">
-                                        Login
-                                    </NavLink>
-                                </NotAuthorized>
-                            </AuthorizeView>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="menu-item">
         <div class="container">
             <div class="row">
@@ -115,7 +36,7 @@
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink href="News" Match="NavLinkMatch.Prefix">
+                                    <NavLink href="news" Match="NavLinkMatch.Prefix">
                                         News
                                     </NavLink>
                                 </li>
@@ -124,11 +45,44 @@
                                         Contact
                                     </NavLink>
                                 </li>
+                                <li>
+                                    <NavLink class="bk-btn me-3" href="book">
+                                        Book
+                                    </NavLink>
+                                </li>
+                                <AuthorizeView>
+                                    <Authorized>
+                                        <li class="nav-item dropdown">
+                                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                @context.User.Identity?.Name
+                                            </a>
+                                            <div class="dropdown-menu" aria-labelledby="userDropdown">
+                                                <NavLink class="btn btn-link dropdown-item" href="mybookings">My Bookings</NavLink>
+                                                <NavLink class="btn btn-link dropdown-item" href="Account/Manage">Dashboard</NavLink>
+                                                <div class="dropdown-divider"></div>
+                                                <form action="Account/Logout" method="post" class="px-3">
+                                                    <AntiforgeryToken />
+                                                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                                    <button type="submit" class="btn btn-link dropdown-item">Logout</button>
+                                                </form>
+                                            </div>
+                                        </li>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <li>
+                                            <NavLink class="btn" href="Account/Register">
+                                                Register
+                                            </NavLink>
+                                        </li>
+                                        <li>
+                                            <NavLink class="btn" href="Account/Login">
+                                                Login
+                                            </NavLink>
+                                        </li>
+                                    </NotAuthorized>
+                                </AuthorizeView>
                             </ul>
                         </nav>
-                        <div class="nav-right search-switch">
-                            <i class="icon_search"></i>
-                        </div>
                     </div>
                 </div>
             </div>
