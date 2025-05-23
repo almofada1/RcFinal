@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using RcFinal.Components;
 using RcFinal.Components.Account;
 using RcFinal.Data;
+using RcFinal.Models;
 using RcFinal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,18 +39,18 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    options.SignIn.RequireConfirmedEmail = false;
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedEmail = true;
+    options.SignIn.RequireConfirmedAccount = true;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-
 // Custom services
 builder.Services.AddSingleton<DapperContext>();
 builder.Services.AddScoped<ReservasService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailSender<ApplicationUser>, EmailSender>();
 
 var app = builder.Build();
 
