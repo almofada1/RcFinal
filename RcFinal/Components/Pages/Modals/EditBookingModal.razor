@@ -1,0 +1,75 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+@inject IModalService Modal
+@inject IToastService ToastService
+@inject ReservasService ReservasService
+
+<EditForm Model="reserva" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Check-In</label>
+        <InputDate @bind-Value="reserva.CheckIn" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Check-Out</label>
+        <InputDate @bind-Value="reserva.CheckOut" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Guests</label>
+        <InputNumber min="1" max="5" @bind-Value="reserva.Guests" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Package</label>
+        <InputSelect @bind-Value="reserva.PackageId" class="form-control">
+            @foreach (var package in packages)
+            {
+                <option value="@package.PackageId">@package.Name</option>
+            }
+        </InputSelect>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+</EditForm>
+
+@code {
+    [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter] public int BookingId { get; set; }
+
+    private Reservas reserva = new();
+    private List<Package> packages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        reserva = await ReservasService.GetReservaByIdAsync(BookingId);
+        packages = await ReservasService.GetPackagesAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        // get the room in one call to the service
+        var roomId = await ReservasService.FindAvailableRoomAsync(reserva);
+        if (roomId < 0)
+        {
+            ToastService.ShowError("No rooms available.");
+            return;
+        }
+
+        reserva.RoomId = roomId;
+
+        await ReservasService.UpdateReservaAsync(reserva);
+        await ModalInstance.CloseAsync(ModalResult.Ok(true));
+    }
+
+    private async Task CloseModal()
+    {
+        await ModalInstance.CancelAsync();
+    }
+}

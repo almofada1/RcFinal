@@ -72,6 +72,10 @@
             identityErrors = result.Errors;
             return;
         }
+        else
+        {
+            await UserManager.AddToRoleAsync(user, "User"); 
+        }
 
         Logger.LogInformation("User created a new account with password.");
 

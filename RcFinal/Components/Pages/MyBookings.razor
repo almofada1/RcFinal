@@ -4,9 +4,11 @@
 
 @inject ReservasService ReservasService
 @inject NavigationManager Navigation
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>My Bookings</PageTitle>
+
+<h2>My bookings</h2>
 
 @if (reservas == null)
 {
@@ -57,16 +59,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var packageList = await ReservasService.GetPackagesAsync();
-        package = packageList.ToList();
+        var package = await ReservasService.GetPackagesAsync();
         packageNames = package.ToDictionary(p => p.PackageId, p => p.Name);
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         
         if (user.Identity?.IsAuthenticated ?? false)
         {
             var email = user.Identity.Name;
-            reservas = (await ReservasService.GetReservasByEmail(email!)).ToList();
+            reservas = await ReservasService.GetReservasByEmail(email!);
         }
     }
 

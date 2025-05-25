@@ -357,30 +357,6 @@ namespace RcFinal.Migrations
                     b.ToTable("Reservas");
                 });
 
-            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
-                {
-                    b.Property<int>("ReservationCostId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReservationCostId"));
-
-                    b.Property<decimal>("Cost")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("RecordedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ReservaId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReservationCostId");
-
-                    b.HasIndex("ReservaId");
-
-                    b.ToTable("ReservationCost");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -447,17 +423,6 @@ namespace RcFinal.Migrations
                     b.Navigation("Package");
 
                     b.Navigation("Quartos");
-                });
-
-            modelBuilder.Entity("RcFinal.Models.ReservationCost", b =>
-                {
-                    b.HasOne("RcFinal.Models.Reservas", "Reserva")
-                        .WithMany()
-                        .HasForeignKey("ReservaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Reserva");
                 });
 #pragma warning restore 612, 618
         }

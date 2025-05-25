@@ -1,0 +1,81 @@
+﻿@inject IModalService Modal
+@inject IToastService ToastService
+@inject ReservasService ReservasService
+@attribute [Authorize(Roles = "Admin")]
+
+@if (bookings == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Room ID</th>
+                <th>Check-In</th>
+                <th>Check-Out</th>
+                <th>Guests</th>
+                <th>Package</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in bookings)
+            {
+                <tr>
+                    <td>@booking.Id</td>
+                    <td>@booking.RoomId</td>
+                    <td>@booking.CheckIn.ToString("dd/MM/yyyy")</td>
+                    <td>@booking.CheckOut.ToString("dd/MM/yyyy")</td>
+                    <td>@booking.Guests</td>
+                    <td>@(packageNames.TryGetValue(booking.PackageId, out var name) ? name : "Unknown")</td>
+                    <td>
+                        <button class="btn btn-warning" @onclick="() => EditBooking(booking.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteBooking(booking.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public string UserEmail { get; set; } = string.Empty;
+
+    private List<Reservas>? bookings;
+    private List<Package>? packages;
+    private Dictionary<string, string> packageNames = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        packages = await ReservasService.GetPackagesAsync();
+        packageNames = packages.ToDictionary(p => p.PackageId, p => p.Name);
+        bookings = await ReservasService.GetReservasByEmail(UserEmail);
+    }
+
+    private async Task EditBooking(int bookingId)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("bookingId", bookingId);
+
+        var modal = Modal.Show<EditBookingModal>("Edit booking of ID: "+bookingId, parameters);
+        var result = await modal.Result;
+
+        if (!result.Cancelled)
+        {
+            ToastService.ShowSuccess("Booking updated successfully!");
+            bookings = await ReservasService.GetReservasByEmail(UserEmail);
+        }
+    }
+
+
+    private async Task DeleteBooking(int bookingId)
+    {
+        await ReservasService.DeleteReserva(bookingId);
+        ToastService.ShowSuccess("Booking deleted successfully!");
+        bookings = await ReservasService.GetReservasByEmail(UserEmail);
+    }
+}

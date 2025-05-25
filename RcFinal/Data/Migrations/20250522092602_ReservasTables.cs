@@ -69,27 +69,6 @@ namespace RcFinal.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "ReservationCost",
-                columns: table => new
-                {
-                    ReservationCostId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ReservaId = table.Column<int>(type: "int", nullable: false),
-                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    RecordedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ReservationCost", x => x.ReservationCostId);
-                    table.ForeignKey(
-                        name: "FK_ReservationCost_Reservas_ReservaId",
-                        column: x => x.ReservaId,
-                        principalTable: "Reservas",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.InsertData(
                 table: "Packages",
                 columns: new[] { "PackageId", "Name", "PricePerNightPerGuest" },
@@ -124,19 +103,11 @@ namespace RcFinal.Migrations
                 name: "IX_Reservas_RoomId",
                 table: "Reservas",
                 column: "RoomId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ReservationCost_ReservaId",
-                table: "ReservationCost",
-                column: "ReservaId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ReservationCost");
-
             migrationBuilder.DropTable(
                 name: "Reservas");
 

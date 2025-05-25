@@ -9,7 +9,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Quartos> Quartos { get; set; }
     public DbSet<Reservas> Reservas { get; set; }
     public DbSet<Package> Packages { get; set; }
-    public DbSet<ReservationCost> ReservationCost { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

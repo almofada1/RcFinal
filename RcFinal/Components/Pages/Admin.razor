@@ -1,0 +1,116 @@
+﻿@page "/admin/users"
+@layout MainLayout
+@attribute [Authorize(Roles = "Admin")]
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IToastService ToastService
+@inject IModalService Modal
+
+<h3>User Management</h3>
+
+<input type="text" class="form-control mb-3" placeholder="Search by email..." @bind-value="searchTerm" @bind-value:event="oninput" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Admin</th>
+            <th>Bookings</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in FilteredUsers)
+        {
+            if (user.Email == UserEmail)
+            {
+                continue;
+            }
+            <tr>
+                <td>@user.Id</td>
+                <td>@user.Email</td>
+                <td>
+                    <input type="checkbox" checked="@user.IsAdmin" @onchange="async e => await HandleCheckboxChange(e, user)" />
+                </td>
+                <td>
+                    <button class="btn btn-primary" @onclick="() => ShowBookingsModal(user.Email!)">View</button>
+                </td>
+                <td>
+                    <button class="btn btn-danger" @onclick="() => DeleteUser(user.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<ApplicationUser> Users = new();
+    private String? UserEmail;
+    private string searchTerm = string.Empty;
+
+    private IEnumerable<ApplicationUser> FilteredUsers =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? Users
+            : Users.Where(u => u.Email?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) == true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated ?? false)
+        {
+            UserEmail = user.Identity.Name;
+        }
+
+        Users = UserManager.Users.ToList();
+
+        foreach (var u in Users)
+        {
+            u.IsAdmin = await UserManager.IsInRoleAsync(u, "Admin");
+        }
+    }
+
+    private async Task<bool> IsAdmin(ApplicationUser user)
+    {
+        return await UserManager.IsInRoleAsync(user, "Admin");
+    }
+
+    private async Task HandleCheckboxChange(ChangeEventArgs e, ApplicationUser user)
+    {
+        bool isChecked = (bool)e.Value;
+        if (isChecked)
+        {
+            await UserManager.AddToRoleAsync(user, "Admin");
+            user.IsAdmin = true;
+            ToastService.ShowSuccess(user.UserName + " is now an admin.");
+        }
+        else
+        {
+            await UserManager.RemoveFromRoleAsync(user, "Admin");
+            user.IsAdmin = false;
+            ToastService.ShowSuccess(user.UserName + " is no longer an admin.");
+        }
+    }
+
+    private void ShowBookingsModal(string userEmail)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("UserEmail", userEmail);
+
+        Modal.Show<BookingsModal>("Bookings for user: "+ userEmail, parameters);
+    }
+
+    private async Task DeleteUser(string userId)
+    {
+        var user = await UserManager.FindByIdAsync(userId);
+        if (user != null)
+        {
+            await UserManager.DeleteAsync(user);
+            Users.Remove(user);
+            ToastService.ShowSuccess(user.UserName + " was deleted.");
+        }
+    }
+}

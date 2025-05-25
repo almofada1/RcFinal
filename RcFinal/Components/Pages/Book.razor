@@ -7,7 +7,7 @@
 @using System.Security.Claims
 @inject ReservasService ReservasService
 @inject AuthenticationStateProvider AuthStateProvider
-@inject IToastService toastService
+@inject IToastService ToastService
 @inject NavigationManager Nav
 
 <PageTitle>Book</PageTitle>
@@ -84,48 +84,22 @@
         }
     }
 
-    private async Task AutoAssignRoom()
-    {
-        var candidates = rooms
-            .Where(r => r.Capacidade == reserva.Guests)
-            .OrderBy(r => r.Capacidade);
-
-        foreach (var room in candidates)
-        {
-            var test = new Reservas
-                {
-                    CheckIn = reserva.CheckIn,
-                    CheckOut = reserva.CheckOut,
-                    Guests = reserva.Guests,
-                    RoomId = room.RoomId,
-                    Email = reserva.Email
-                };
-
-            if (!await ReservasService.HasOverlapAsync(test))
-            {
-                selectedRoomId = room.RoomId;
-                return;
-            }
-        }
-    }
-
     private async Task HandleValidSubmit()
     {
-        await AutoAssignRoom();
         // 1. Enforce at least one night:
         if (reserva.CheckOut <= reserva.CheckIn)
         {
             errorMessage = "Check-out must be at least one day after check-in.";
-            toastService.ShowWarning(errorMessage);
+            ToastService.ShowWarning(errorMessage);
             return;
         }
 
         // 2. Now try to auto-assign a room
-        await AutoAssignRoom();
+        selectedRoomId = await ReservasService.FindAvailableRoomAsync(reserva);
         if (selectedRoomId == -1)
         {
             errorMessage = "No rooms available.";
-            toastService.ShowError(errorMessage);
+            ToastService.ShowError(errorMessage);
             return;
         }
 
@@ -133,7 +107,7 @@
         if (string.IsNullOrWhiteSpace(reserva.PackageId))
         {
             errorMessage = "Please select a package.";
-            toastService.ShowWarning(errorMessage);
+            ToastService.ShowWarning(errorMessage);
             return;
         }
 
@@ -141,25 +115,17 @@
         if (selectedPackage == null)
         {
             errorMessage = "Invalid package selected.";
-            toastService.ShowWarning(errorMessage);
+            ToastService.ShowWarning(errorMessage);
             return;
         }
 
-        var nights = (reserva.CheckOut - reserva.CheckIn).Days;
+        var total = ReservasService.CalculateTotalCost(reserva, selectedPackage);
         reserva.RoomId = selectedRoomId;
-        reserva.TotalCost = selectedPackage.PricePerNightPerGuest
-                            * reserva.Guests
-                            * nights;
-
+        reserva.TotalCost = total;
+        
+           // persist reserva
         var newReservaId = await ReservasService.SaveReserva(reserva);
-        var costEntry = new ReservationCost
-            {
-                ReservaId = newReservaId,
-                Cost = reserva.TotalCost,
-                RecordedAt = DateTime.UtcNow
-            };
-        await ReservasService.SaveReservationCost(costEntry);
-
+        
         Nav.NavigateTo("/?bookingSuccess=true");
     }
 }

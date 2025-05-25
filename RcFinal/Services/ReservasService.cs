@@ -1,6 +1,5 @@
 ﻿// Services/ReservasService.cs
 using RcFinal.Models;
-using Dapper;
 
 namespace RcFinal.Services
 {
@@ -9,27 +8,80 @@ namespace RcFinal.Services
         private readonly DapperContext _db;
         public ReservasService(DapperContext db) => _db = db;
 
+        public async Task<int> FindAvailableRoomAsync(Reservas reserva)
+        {
+            // 1. Load all rooms matching the guest count
+            var sqlRooms = "SELECT * FROM Quartos WHERE Capacidade = @Guests;";
+            var rooms = (await _db.QueryAsync<Quartos>(sqlRooms, new { reserva.Guests })).ToList();
+
+            // 2. Iterate and find the first non-overlapping reservation
+            foreach (var room in rooms)
+            {
+                var overlapSql = @"
+                    SELECT COUNT(1)
+                    FROM Reservas
+                    WHERE RoomId   = @RoomId
+                      AND CheckIn  <  @CheckOut
+                      AND CheckOut >  @CheckIn;
+                 ";
+                var count = await _db.QuerySingleAsync<int>
+                (
+                    overlapSql, new
+                    {
+                        room.RoomId,
+                        reserva.CheckIn,
+                        reserva.CheckOut
+                    }
+                 );
+
+                if (count == 0)
+                {
+                    // no overlap → this room is free
+                    return room.RoomId;
+                }
+            }
+
+            // none free
+            return -1;
+        }
         public async Task<IEnumerable<Quartos>> GetQuartosAsync()
         {
             var sql = "SELECT * FROM Quartos";
             return await _db.QueryAsync<Quartos>(sql);
         }
-
-        public async Task<IEnumerable<Package>> GetPackagesAsync()
+        public async Task<List<Package>> GetPackagesAsync()
         {
             var sql = "SELECT * FROM Packages";
-            return await _db.QueryAsync<Package>(sql);
+            var result = await _db.QueryAsync<Package>(sql);
+            return [.. result];
         }
-
-        public async Task<IEnumerable<Reservas>> GetReservasByEmail(string email)
+        public async Task<List<Reservas>> GetReservasByEmail(string email)
+        {
+            var sql = @"SELECT * FROM Reservas WHERE Email = @Email;";
+            var result = await _db.QueryAsync<Reservas>(sql, new { Email = email });
+            return [.. result];
+        }
+        public async Task<Reservas?> GetReservaByIdAsync(int id)
+        {
+            var sql = "SELECT * FROM Reservas WHERE Id = @Id;";
+            return await _db.QuerySingleAsync<Reservas>(sql, new { Id = id });
+        }
+        public async Task UpdateReservaAsync(Reservas reserva)
         {
             var sql = @"
-                SELECT * FROM Reservas 
-                WHERE Email = @Email;";
-            return await _db.QueryAsync<Reservas>(sql, new { Email = email });
+                UPDATE Reservas
+                SET
+                    CheckIn = @CheckIn,
+                    CheckOut = @CheckOut,
+                    Guests = @Guests,
+                    Email = @Email,
+                    RoomId = @RoomId,
+                    PackageId = @PackageId,
+                    TotalCost = @TotalCost
+                WHERE Id = @Id;
+            ";
+            await _db.ExecuteAsync(sql, reserva);
         }
-
-
         public async Task<bool> HasOverlapAsync(Reservas r)
         {
             var sql = @"
@@ -42,14 +94,10 @@ namespace RcFinal.Services
             var count = await _db.QuerySingleAsync<int>(sql, new { r.RoomId, r.CheckIn, r.CheckOut });
             return count > 0;
         }
-
-        /// <summary>
-        /// Inserts a reservation and returns its new Id.
-        /// </summary>
         public async Task<int> SaveReserva(Reservas reserva)
         {
-            if (await HasOverlapAsync(reserva))
-                throw new InvalidOperationException("That room is already booked for those dates.");
+            //if (await HasOverlapAsync(reserva))
+            //    throw new InvalidOperationException("That room is already booked for those dates.");
 
             var sql = @"
                 INSERT INTO Reservas
@@ -63,18 +111,15 @@ namespace RcFinal.Services
             var newId = await _db.QuerySingleAsync<int>(sql, reserva);
             return newId;
         }
-
-        public async Task SaveReservationCost(ReservationCost costEntry)
+        public decimal CalculateTotalCost(Reservas reserva, Package pkg)
         {
-            var sql = @"
-                INSERT INTO ReservationCost
-                    (ReservaId, Cost, RecordedAt)
-                VALUES
-                    (@ReservaId, @Cost, @RecordedAt);
-            ";
-            await _db.ExecuteAsync(sql, costEntry);
-        }
+            var nights = (reserva.CheckOut - reserva.CheckIn).Days;
+            if (nights < 1) throw new ArgumentException("Check-out must be at least one day after check-in.");
 
+            return pkg.PricePerNightPerGuest
+                 * reserva.Guests
+                 * nights;
+        }
         public async Task DeleteReserva(int id)
         {
             var sql = "DELETE FROM Reservas WHERE Id = @Id;";
