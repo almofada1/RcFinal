@@ -1,10 +1,53 @@
 ﻿@page "/admin/checkins"
 @layout MainLayout
 @attribute [Authorize(Roles = "Admin")]
+@inject ReservasService ReservasService
+@inject IModalService Modal
 @inject IToastService ToastService
 
-<h3>CheckIns</h3>
+<h3>Data hotel: @((DateTime.Today).ToString("dd/MM/yyyy"))</h3>
+<div class="row">
+    @if (checkins == null)
+    {
+        <p>Carregando...</p>
+    }
+    else if (!checkins.Any())
+    {
+        <p>Nenhuma reserva com check-in hoje.</p>
+    }
+    else
+    {
+        @foreach (var c in checkins)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card h-100" style="cursor: pointer;" @onclick="() => ShowModal(c)">
+                    <div class="card-body">
+                        <h4 class="card-title"><strong>Reserva:</strong> @c.Id</h4>
+                        <p class="card-text">
+                            <strong>Check-In:</strong> @c.CheckIn.ToString("dd-MM-yyyy")<br />
+                            <strong>Check-Out:</strong> @c.CheckOut.ToString("dd-MM-yyyy")<br />
+                            <strong>Estado:</strong> @c.Estado
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
 
 @code {
+    private List<Reservas>? checkins;
 
+    protected override async Task OnInitializedAsync()
+    {
+        // load today's check-ins
+        checkins = await ReservasService.GetCheckinsForDateAsync(DateTime.Today);
+    }
+
+    private void ShowModal(Reservas c)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("Reserva", c);
+        Modal.Show<CheckinModal>("Ações de Reserva", parameters);
+    }
 }

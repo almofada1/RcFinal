@@ -101,9 +101,9 @@ namespace RcFinal.Services
 
             var sql = @"
                 INSERT INTO Reservas
-                    (CheckIn, CheckOut, Guests, Email, RoomId, PackageId, TotalCost)
+                    (CheckIn, CheckOut, Guests, Email, RoomId, PackageId, TotalCost, Estado)
                 VALUES
-                    (@CheckIn, @CheckOut, @Guests, @Email, @RoomId, @PackageId, @TotalCost);
+                    (@CheckIn, @CheckOut, @Guests, @Email, @RoomId, @PackageId, @TotalCost, @Estado);
                 SELECT CAST(SCOPE_IDENTITY() as int);
             ";
 
@@ -124,6 +124,16 @@ namespace RcFinal.Services
         {
             var sql = "DELETE FROM Reservas WHERE Id = @Id;";
             await _db.ExecuteAsync(sql, new { Id = id });
+        }
+        public async Task<List<Reservas>> GetCheckinsForDateAsync(DateTime date)
+        {
+            var sql = @"SELECT * FROM Reservas WHERE CAST(CheckIn AS date) = @Date";
+            return (await _db.QueryAsync<Reservas>(sql, new { Date = date.Date })).ToList();
+        }
+        public async Task UpdateEstadoAsync(int reservaId, string newEstado)
+        {
+            var sql = "UPDATE Reservas SET Estado = @Estado WHERE Id = @Id";
+            await _db.ExecuteAsync(sql, new { Id = reservaId, Estado = newEstado });
         }
     }
 }

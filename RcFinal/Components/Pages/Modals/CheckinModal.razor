@@ -1,0 +1,17 @@
+﻿@inject ReservasService ReservasService
+@inject IToastService ToastService
+
+<EditForm Model="Reserva" OnValidSubmit="HandleValidSubmit">
+
+</EditForm>
+
+@code {
+    [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; }
+
+    [Parameter] public Reservas Reserva { get; set; }
+
+    private void HandleValidSubmit()
+    {
+        
+    }
+}
