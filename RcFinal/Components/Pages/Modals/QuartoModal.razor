@@ -1,0 +1,47 @@
+﻿@using RcFinal.Models
+@inject IToastService ToastService
+@inject ReservasService ReservasService
+
+<EditForm Model="Quarto" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="capacidade" class="form-label">Capacidade</label>
+        <InputNumber id="capacidade" @bind-Value="Quarto.Capacidade" class="form-control" min="1" />
+        <ValidationMessage For="@(() => Quarto.Capacidade)" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2">Guardar</button>
+    <button type="button" class="btn btn-secondary" @onclick="Close">Cancelar</button>
+</EditForm>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance? ModalInstance { get; set; }
+
+    [Parameter] public Quartos? Quarto { get; set; }
+
+    private async Task HandleValidSubmit()
+    {
+        if (Quarto is null)
+            return;
+
+        if (Quarto.RoomId == 0)
+        {
+            await ReservasService.AddQuartoAsync(Quarto);
+            ToastService.ShowSuccess("Quarto adicionado com sucesso.");
+        }
+        else
+        {
+            await ReservasService.UpdateQuartoAsync(Quarto);
+            ToastService.ShowSuccess("Quarto atualizado com sucesso.");
+        }
+        await ModalInstance!.CloseAsync();
+    }
+
+    private async Task Close()
+    {
+        if (ModalInstance is not null)
+            await ModalInstance.CancelAsync();
+    }
+}

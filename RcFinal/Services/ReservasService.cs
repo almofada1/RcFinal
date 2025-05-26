@@ -1,4 +1,5 @@
 ﻿// Services/ReservasService.cs
+using Microsoft.EntityFrameworkCore;
 using RcFinal.Models;
 
 namespace RcFinal.Services
@@ -49,6 +50,22 @@ namespace RcFinal.Services
             var sql = "SELECT * FROM Quartos";
             return await _db.QueryAsync<Quartos>(sql);
         }
+        public async Task AddQuartoAsync(Quartos quarto)
+        {
+            var sql = "INSERT INTO Quartos (Capacidade) VALUES (@Capacidade);";
+            await _db.ExecuteAsync(sql, new { quarto.Capacidade });
+        }
+        public async Task UpdateQuartoAsync(Quartos quarto)
+        {
+            var sql = "UPDATE Quartos SET Capacidade = @Capacidade WHERE RoomId = @RoomId;";
+            await _db.ExecuteAsync(sql, new { quarto.Capacidade, quarto.RoomId });
+        }
+        public async Task<bool> DeleteQuartoAsync(int roomId)
+        {
+            var sql = "DELETE FROM Quartos WHERE RoomId = @RoomId;";
+            var rowsAffected = await _db.ExecuteAsync(sql, new { RoomId = roomId });
+            return rowsAffected > 0;
+        }
         public async Task<List<Package>> GetPackagesAsync()
         {
             var sql = "SELECT * FROM Packages";
@@ -77,7 +94,8 @@ namespace RcFinal.Services
                     Email = @Email,
                     RoomId = @RoomId,
                     PackageId = @PackageId,
-                    TotalCost = @TotalCost
+                    TotalCost = @TotalCost,
+                    EstadoId = @EstadoId
                 WHERE Id = @Id;
             ";
             await _db.ExecuteAsync(sql, reserva);
@@ -134,6 +152,12 @@ namespace RcFinal.Services
         {
             var sql = "UPDATE Reservas SET Estado = @Estado WHERE Id = @Id";
             await _db.ExecuteAsync(sql, new { Id = reservaId, Estado = newEstado });
+        }
+        public async Task<List<Estado>> GetEstadosAsync()
+        {
+            var sql = "SELECT * FROM Estados";
+            var result = await _db.QueryAsync<Estado>(sql);
+            return [.. result];
         }
     }
 }

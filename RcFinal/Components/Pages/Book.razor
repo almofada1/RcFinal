@@ -20,12 +20,12 @@
 
         <div class="check-date">
             <label for="date-in">Check In:</label>
-            <InputDate @bind-Value="reserva.CheckIn" id="date-in" class="form-control" />
+            <InputDate @bind-Value="reserva.CheckIn" min="@MinInDate.ToString("yyyy-MM-dd")" id="date-in" class="form-control" />
         </div>
 
         <div class="check-date">
             <label for="date-out">Check Out:</label>
-            <InputDate @bind-Value="reserva.CheckOut" id="date-out" class="form-control" />
+            <InputDate @bind-Value="reserva.CheckOut" min="@MinOutDate.ToString("yyyy-MM-dd")" id="date-out" class="form-control" />
         </div>
 
         <div class="select-option mb-3">
@@ -63,12 +63,14 @@
     [SupplyParameterFromForm]
     private Reservas reserva { get; set; } = new()
         {
-            CheckIn = DateTime.Today,
-            CheckOut = DateTime.Today.AddDays(1),
+            CheckIn = DateTime.Today.AddDays(1),
+            CheckOut = DateTime.Today.AddDays(2),
             Guests = 1,
             PackageId = "1",
             EstadoId = 1
         };
+    private DateTime MinInDate => DateTime.Today.AddDays(1);
+    private DateTime MinOutDate => DateTime.Today.AddDays(2);
 
     protected override async Task OnInitializedAsync()
     {

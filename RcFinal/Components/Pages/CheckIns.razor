@@ -26,7 +26,7 @@
                         <p class="card-text">
                             <strong>Check-In:</strong> @c.CheckIn.ToString("dd-MM-yyyy")<br />
                             <strong>Check-Out:</strong> @c.CheckOut.ToString("dd-MM-yyyy")<br />
-                            <strong>Estado:</strong> @c.Estado
+                            <strong>Estado:</strong> @(estados?.FirstOrDefault(e => e.Id == c.EstadoId)?.Nome ?? "Desconhecido")<br />
                         </p>
                     </div>
                 </div>
@@ -37,17 +37,33 @@
 
 @code {
     private List<Reservas>? checkins;
+    private List<Estado>? estados;
 
     protected override async Task OnInitializedAsync()
     {
         // load today's check-ins
-        checkins = await ReservasService.GetCheckinsForDateAsync(DateTime.Today);
+        await GetCheckins();
+        estados = await ReservasService.GetEstadosAsync();
     }
 
-    private void ShowModal(Reservas c)
+    private async Task ShowModal(Reservas c)
     {
         var parameters = new ModalParameters();
         parameters.Add("Reserva", c);
-        Modal.Show<CheckinModal>("Ações de Reserva", parameters);
+        var options = new ModalOptions
+        {
+            Size = ModalSize.Automatic
+        };
+        var modal = Modal.Show<CheckinModal>("Ações de Reserva", parameters, options);
+        var result = await modal.Result;
+        if (!result.Cancelled)
+        {
+            await GetCheckins();
+        }
+    }
+
+    private async Task GetCheckins()
+    {
+        checkins = await ReservasService.GetCheckinsForDateAsync(DateTime.Today);
     }
 }

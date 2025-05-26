@@ -1,0 +1,89 @@
+﻿@page "/admin/quartos"
+@layout MainLayout
+@attribute [Authorize(Roles = "Admin")]
+@inject IToastService ToastService
+@inject ReservasService ReservasService
+@inject IModalService Modal
+@inject IJSRuntime JS
+
+<h3>Gestão de Quartos</h3>
+
+<button class="btn btn-primary mb-3" @onclick='() => OpenModalAsync(new Quartos { Capacidade = 1 }, "Adicionar Quarto")'>Adicionar Quarto</button>
+
+@if (quartos is null)
+{
+    <p><em>A carregar...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Capacidade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var quarto in quartos)
+            {
+                <tr>
+                    <td>@quarto.RoomId</td>
+                    <td>@quarto.Capacidade</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2" @onclick='() => OpenModalAsync(quarto, "Editar Quarto")'>Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteQuarto(quarto.RoomId)">Apagar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Quartos>? quartos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadQuartos();
+    }
+
+    private async Task LoadQuartos()
+    {
+        quartos = (await ReservasService.GetQuartosAsync()).ToList();
+    }
+
+    private async Task DeleteQuarto(int id)
+    {
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Tem a certeza que deseja apagar este quarto?");
+        if (confirm)
+        {
+            var success = await ReservasService.DeleteQuartoAsync(id);
+            if (success)
+            {
+                ToastService.ShowSuccess("Quarto apagado com sucesso");
+                await LoadQuartos();
+            }
+            else
+            {
+                ToastService.ShowError("Erro ao apagar o quarto");
+            }
+        }
+    }
+
+    private async Task OpenModalAsync(Quartos quarto, string title)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("Quarto", quarto);
+        var options = new ModalOptions
+        {
+            Size = ModalSize.Automatic
+        };
+        var modal = Modal.Show<QuartoModal>(title, parameters, options);
+        var result = await modal.Result;
+        if (!result.Cancelled)
+        {
+            await LoadQuartos();
+        }
+    }
+}

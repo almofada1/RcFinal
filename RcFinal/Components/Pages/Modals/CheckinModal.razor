@@ -2,27 +2,74 @@
 @inject IToastService ToastService
 
 <EditForm Model="Reserva" OnValidSubmit="HandleValidSubmit">
-    @if (Reserva.EstadoId == 1)
+    @if (Reserva?.EstadoId == 1)
     {
-
+        <div class="text-center">
+            <p>Deseja fazer <strong>Check-In</strong> para esta reserva?</p>
+            <button class="btn btn-success me-2" @onclick="CheckIn">Check-In</button>
+            <button class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+        </div>
     }
-    @if (Reserva.EstadoId == 2)
+    else if (Reserva?.EstadoId == 2)
     {
-
+        if (Reserva.CheckOut.Date == DateTime.Today)
+        {
+            <div class="text-center">
+                <p>Hoje é o dia do <strong>Check-Out</strong>. Deseja continuar?</p>
+                <button class="btn btn-primary me-2" @onclick="CheckOut">Check-Out</button>
+                <button class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+            </div>
+        }
+        else
+        {
+            <div class="text-center">
+                <p>Não existem ações para esta reserva hoje.</p>
+                <button class="btn btn-secondary" @onclick="Cancel">Fechar</button>
+            </div>
+        }
     }
-    @if (Reserva.EstadoId == 3)
+    else if (Reserva?.EstadoId == 3)
     {
-        
+        <div class="text-center">
+            <p>Esta reserva já está concluída. Nenhuma ação disponível.</p>
+            <button class="btn btn-secondary" @onclick="Cancel">Fechar</button>
+        </div>
     }
 </EditForm>
 
 @code {
     [CascadingParameter] private BlazoredModalInstance? ModalInstance { get; set; }
-
     [Parameter] public Reservas? Reserva { get; set; }
+
+    private async Task CheckIn()
+    {
+        if (Reserva != null)
+        {
+            Reserva.EstadoId = 2; // Checked in
+            await ReservasService.UpdateReservaAsync(Reserva);
+            ToastService.ShowSuccess("Check-in efetuado com sucesso.");
+            await ModalInstance!.CloseAsync();
+        }
+    }
+
+    private async Task CheckOut()
+    {
+        if (Reserva != null)
+        {
+            Reserva.EstadoId = 3; // Checked out
+            await ReservasService.UpdateReservaAsync(Reserva);
+            ToastService.ShowSuccess("Check-out efetuado com sucesso.");
+            await ModalInstance!.CloseAsync();
+        }
+    }
+
+    private async Task Cancel()
+    {
+        await ModalInstance!.CancelAsync();
+    }
 
     private void HandleValidSubmit()
     {
-        
+        // This is optional here, since actions are handled in buttons directly.
     }
 }

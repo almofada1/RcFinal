@@ -9,12 +9,12 @@
 
     <div class="form-group">
         <label>Check-In</label>
-        <InputDate @bind-Value="reserva.CheckIn" class="form-control" />
+        <InputDate @bind-Value="reserva.CheckIn" min="@MinInDate.ToString("yyyy-MM-dd")" id="date-in" class="form-control" />
     </div>
 
     <div class="form-group">
         <label>Check-Out</label>
-        <InputDate @bind-Value="reserva.CheckOut" class="form-control" />
+        <InputDate @bind-Value="reserva.CheckIn" min="@MinOutDate.ToString("yyyy-MM-dd")" id="date-in" class="form-control" />
     </div>
 
     <div class="form-group">
@@ -45,6 +45,9 @@
 
     private Reservas reserva = new();
     private List<Package> packages = new();
+
+    private DateTime MinInDate => DateTime.Today.AddDays(1);
+    private DateTime MinOutDate => DateTime.Today.AddDays(2);
 
     protected override async Task OnInitializedAsync()
     {
