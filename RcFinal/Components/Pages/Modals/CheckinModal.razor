@@ -2,13 +2,24 @@
 @inject IToastService ToastService
 
 <EditForm Model="Reserva" OnValidSubmit="HandleValidSubmit">
+    @if (Reserva.EstadoId == 1)
+    {
 
+    }
+    @if (Reserva.EstadoId == 2)
+    {
+
+    }
+    @if (Reserva.EstadoId == 3)
+    {
+        
+    }
 </EditForm>
 
 @code {
-    [CascadingParameter] private BlazoredModalInstance ModalInstance { get; set; }
+    [CascadingParameter] private BlazoredModalInstance? ModalInstance { get; set; }
 
-    [Parameter] public Reservas Reserva { get; set; }
+    [Parameter] public Reservas? Reserva { get; set; }
 
     private void HandleValidSubmit()
     {

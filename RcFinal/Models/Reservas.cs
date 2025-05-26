@@ -30,5 +30,6 @@ public class Reservas
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalCost { get; set; }
-    public string Estado { get; set; } = "Reserva";
+    public int EstadoId { get; set; }
+    public Estado Estado { get; set; } = null!;
 }

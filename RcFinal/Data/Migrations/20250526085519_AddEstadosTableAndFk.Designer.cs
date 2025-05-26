@@ -12,8 +12,8 @@ using RcFinal.Data;
 namespace RcFinal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250525232040_EstadosColumn")]
-    partial class EstadosColumn
+    [Migration("20250526085519_AddEstadosTableAndFk")]
+    partial class AddEstadosTableAndFk
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -223,6 +223,40 @@ namespace RcFinal.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("RcFinal.Models.Estado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Estados", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Nome = "Reserva"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Nome = "Checked in"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Nome = "Checked out"
+                        });
+                });
+
             modelBuilder.Entity("RcFinal.Models.Package", b =>
                 {
                     b.Property<string>("PackageId")
@@ -339,9 +373,10 @@ namespace RcFinal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("EstadoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<int>("Guests")
                         .HasColumnType("int");
@@ -356,6 +391,8 @@ namespace RcFinal.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EstadoId");
 
                     b.HasIndex("PackageId");
 
@@ -417,6 +454,12 @@ namespace RcFinal.Migrations
 
             modelBuilder.Entity("RcFinal.Models.Reservas", b =>
                 {
+                    b.HasOne("RcFinal.Models.Estado", "Estado")
+                        .WithMany("Reservas")
+                        .HasForeignKey("EstadoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("RcFinal.Models.Package", "Package")
                         .WithMany()
                         .HasForeignKey("PackageId");
@@ -427,9 +470,16 @@ namespace RcFinal.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Estado");
+
                     b.Navigation("Package");
 
                     b.Navigation("Quartos");
+                });
+
+            modelBuilder.Entity("RcFinal.Models.Estado", b =>
+                {
+                    b.Navigation("Reservas");
                 });
 #pragma warning restore 612, 618
         }

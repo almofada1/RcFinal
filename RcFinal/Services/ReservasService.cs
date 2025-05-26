@@ -101,9 +101,9 @@ namespace RcFinal.Services
 
             var sql = @"
                 INSERT INTO Reservas
-                    (CheckIn, CheckOut, Guests, Email, RoomId, PackageId, TotalCost, Estado)
+                    (CheckIn, CheckOut, Guests, Email, RoomId, PackageId, TotalCost, EstadoId)
                 VALUES
-                    (@CheckIn, @CheckOut, @Guests, @Email, @RoomId, @PackageId, @TotalCost, @Estado);
+                    (@CheckIn, @CheckOut, @Guests, @Email, @RoomId, @PackageId, @TotalCost, @EstadoId);
                 SELECT CAST(SCOPE_IDENTITY() as int);
             ";
 

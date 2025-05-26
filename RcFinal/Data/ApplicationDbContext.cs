@@ -9,6 +9,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Quartos> Quartos { get; set; }
     public DbSet<Reservas> Reservas { get; set; }
     public DbSet<Package> Packages { get; set; }
+    public DbSet<Estado> Estados { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,21 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             new Package { PackageId = "4", Name = "All-Inclusive", PricePerNightPerGuest = 60 }
         );
 
+        modelBuilder.Entity<Reservas>()
+            .HasOne(r => r.Estado)
+            .WithMany(e => e.Reservas)
+            .HasForeignKey(r => r.EstadoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Estado>().ToTable("Estados").HasData(
+            new Estado { Id = 1, Nome = "Reserva" },
+            new Estado { Id = 2, Nome = "Checked in" },
+            new Estado { Id = 3, Nome = "Checked out" }
+        );
+
+        modelBuilder.Entity<Reservas>()
+            .Property(r => r.EstadoId)
+            .HasDefaultValue(1);
 
         base.OnModelCreating(modelBuilder);
     }
