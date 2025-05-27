@@ -5,6 +5,7 @@
 @inject ReservasService ReservasService
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService ToastService
 
 <PageTitle>My Bookings</PageTitle>
 
@@ -63,7 +64,7 @@ else
         packageNames = package.ToDictionary(p => p.PackageId, p => p.Name);
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        
+
         if (user.Identity?.IsAuthenticated ?? false)
         {
             var email = user.Identity.Name;
@@ -75,5 +76,6 @@ else
     {
         await ReservasService.DeleteReserva(id);
         reservas = reservas?.Where(r => r.Id != id).ToList();
+        ToastService.ShowSuccess("Booking deleted successfully!");
     }
 }

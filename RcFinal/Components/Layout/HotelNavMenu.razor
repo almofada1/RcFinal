@@ -7,6 +7,11 @@
         display: block;
         margin-top: 0; /* Adjust spacing if needed */
     }
+    /* CSS */
+    .btn:focus {
+        outline: none;
+        box-shadow: none;
+    }
 </style>
 
 <!-- Header Section Begin -->
@@ -26,27 +31,27 @@
                         <nav class="mainmenu">
                             <ul>
                                 <li class="nav-item">
-                                    <NavLink href="" Match="NavLinkMatch.Prefix">
+                                    <NavLink class="btn" href="" Match="NavLinkMatch.Prefix">
                                         Home
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink href="about-us" Match="NavLinkMatch.Prefix">
+                                    <NavLink class="btn" href="about-us" Match="NavLinkMatch.Prefix">
                                         About Us
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink href="news" Match="NavLinkMatch.Prefix">
+                                    <NavLink class="btn" href="news" Match="NavLinkMatch.Prefix">
                                         News
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink href="contact" Match="NavLinkMatch.Prefix">
+                                    <NavLink class="btn" href="contact" Match="NavLinkMatch.Prefix">
                                         Contact
                                     </NavLink>
                                 </li>
                                 <li>
-                                    <NavLink class="bk-btn me-3" href="book">
+                                    <NavLink class="btn" href="book">
                                         Book
                                     </NavLink>
                                 </li>
@@ -57,13 +62,13 @@
                                                 @authContext.User.Identity?.Name
                                             </a>
                                             <div class="dropdown-menu" aria-labelledby="userDropdown">
-                                                <NavLink class="btn btn-link dropdown-item" href="mybookings">My Bookings</NavLink>
-                                                <NavLink class="btn btn-link dropdown-item" href="Account/Manage">Dashboard</NavLink>
+                                                <NavLink class="btn" style="margin-left: 25px" href="mybookings">My Bookings</NavLink>
+                                                <NavLink class="btn" style="margin-left: 25px" href="Account/Manage">Dashboard</NavLink>
                                                 <div class="dropdown-divider"></div>
                                                 <form action="Account/Logout" method="post" class="px-3">
                                                     <AntiforgeryToken />
                                                     <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                                    <button type="submit" class="btn btn-link dropdown-item">Logout</button>
+                                                    <button type="submit" class="btn">Logout</button>
                                                 </form>
                                             </div>
                                         </li>
