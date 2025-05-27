@@ -24,6 +24,7 @@
                     <div class="card-body">
                         <h4 class="card-title"><strong>Reserva:</strong> @c.Id</h4>
                         <p class="card-text">
+                            <strong>Email: </strong>@c.Email<br />
                             <strong>Check-In:</strong> @c.CheckIn.ToString("dd-MM-yyyy")<br />
                             <strong>Check-Out:</strong> @c.CheckOut.ToString("dd-MM-yyyy")<br />
                             <strong>Estado:</strong> @(estados?.FirstOrDefault(e => e.Id == c.EstadoId)?.Nome ?? "Desconhecido")<br />
@@ -64,6 +65,6 @@
 
     private async Task GetCheckins()
     {
-        checkins = await ReservasService.GetCheckinsForDateAsync(DateTime.Today);
+        checkins = await ReservasService.GetBookingsForDateAsync(DateTime.Today);
     }
 }

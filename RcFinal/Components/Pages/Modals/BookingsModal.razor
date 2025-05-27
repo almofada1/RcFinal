@@ -18,6 +18,7 @@ else
                 <th>Check-Out</th>
                 <th>Guests</th>
                 <th>Package</th>
+                <th>State</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -31,11 +32,28 @@ else
                     <td>@booking.CheckOut.ToString("dd/MM/yyyy")</td>
                     <td>@booking.Guests</td>
                     <td>@(packageNames.TryGetValue(booking.PackageId, out var name) ? name : "Unknown")</td>
+                    <td>@(estadoNames.TryGetValue(booking.EstadoId, out var nome) ? nome : "Unknown")</td>
                     <td>
-                        <button class="btn btn-warning" @onclick="() => EditBooking(booking.Id)">Edit</button>
-                        <button class="btn btn-danger" @onclick="() => DeleteBooking(booking.Id)">Delete</button>
+                        @if (booking.EstadoId == 1)
+                        {
+                            <button class="btn btn-warning" @onclick="() => EditBooking(booking.Id)">
+                                Edit
+                            </button>
+                            <button class="btn btn-danger" @onclick="() => DeleteBooking(booking.Id)">
+                                Delete
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-warning" disabled title="Only new reservations can be edited">
+                                Edit
+                            </button>
+                            <button class="btn btn-danger" disabled title="Only new reservations can be deleted">
+                                Delete
+                            </button>
+                        }
                     </td>
-                </tr>
+                </tr>   
             }
         </tbody>
     </table>
@@ -48,12 +66,16 @@ else
     private List<Reservas>? bookings;
     private List<Package>? packages;
     private Dictionary<string, string> packageNames = new();
+    private List<Estado>? estados;
+    private Dictionary<int, string> estadoNames = new();
 
     protected override async Task OnInitializedAsync()
     {
         packages = await ReservasService.GetPackagesAsync();
         packageNames = packages.ToDictionary(p => p.PackageId, p => p.Name);
         bookings = await ReservasService.GetReservasByEmail(UserEmail);
+        estados = await ReservasService.GetEstadosAsync();
+        estadoNames = estados.ToDictionary(e => e.Id, e => e.Nome);
     }
 
     private async Task EditBooking(int bookingId)

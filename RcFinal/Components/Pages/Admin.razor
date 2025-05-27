@@ -16,6 +16,7 @@
         <tr>
             <th>ID</th>
             <th>Email</th>
+            <th>Confirmed Email</th>
             <th>Admin</th>
             <th>Bookings</th>
             <th>Delete</th>
@@ -31,6 +32,7 @@
             <tr>
                 <td>@user.Id</td>
                 <td>@user.Email</td>
+                <td>@user.EmailConfirmed</td>
                 <td>
                     <input type="checkbox" checked="@user.IsAdmin" @onchange="async e => await HandleCheckboxChange(e, user)" />
                 </td>

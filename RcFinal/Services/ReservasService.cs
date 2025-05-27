@@ -8,7 +8,6 @@ namespace RcFinal.Services
     {
         private readonly DapperContext _db;
         public ReservasService(DapperContext db) => _db = db;
-
         public async Task<int> FindAvailableRoomAsync(Reservas reserva)
         {
             // 1. Load all rooms matching the guest count
@@ -143,9 +142,13 @@ namespace RcFinal.Services
             var sql = "DELETE FROM Reservas WHERE Id = @Id;";
             await _db.ExecuteAsync(sql, new { Id = id });
         }
-        public async Task<List<Reservas>> GetCheckinsForDateAsync(DateTime date)
+        public async Task<List<Reservas>> GetBookingsForDateAsync(DateTime date)
         {
-            var sql = @"SELECT * FROM Reservas WHERE CAST(CheckIn AS date) = @Date";
+            var sql = @"SELECT * 
+                FROM Reservas 
+                WHERE CAST(CheckIn AS date) = @Date 
+                   OR CAST(CheckOut AS date) = @Date;
+                ";
             return (await _db.QueryAsync<Reservas>(sql, new { Date = date.Date })).ToList();
         }
         public async Task UpdateEstadoAsync(int reservaId, string newEstado)
