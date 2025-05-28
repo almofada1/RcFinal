@@ -28,66 +28,64 @@
             <img src="img/logo.png" alt="">
         </a>
     </div>
-    <nav class="mainmenu mobile">
-        <ul>
-            <li class="nav-item">
-                <NavLink class="btn" href="" Match="NavLinkMatch.Prefix">
-                    Home
-                </NavLink>
-            </li>
-            <li>
-                <NavLink class="btn" href="about-us" Match="NavLinkMatch.Prefix">
-                    About Us
-                </NavLink>
-            </li>
-            <li>
-                <NavLink class="btn" href="news" Match="NavLinkMatch.Prefix">
-                    News
-                </NavLink>
-            </li>
-            <li>
-                <NavLink class="btn" href="contact" Match="NavLinkMatch.Prefix">
-                    Contact
-                </NavLink>
-            </li>
-            <li>
-                <NavLink class="btn" href="book">
-                    Book
-                </NavLink>
-            </li>
-            <AuthorizeView>
-                <Authorized Context="authContext">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            @authContext.User.Identity?.Name
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="userDropdown">
-                            <NavLink class="btn" style="margin-left: 25px" href="mybookings">My Bookings</NavLink>
-                            <NavLink class="btn" style="margin-left: 25px" href="Account/Manage">Dashboard</NavLink>
-                            <div class="dropdown-divider"></div>
-                            <form action="Account/Logout" method="post" class="px-3">
-                                <AntiforgeryToken />
-                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                                <button type="submit" class="btn">Logout</button>
-                            </form>
-                        </div>
-                    </li>
-                </Authorized>
-                <NotAuthorized>
-                    <li>
-                        <NavLink class="btn" href="Account/Register">
-                            Register
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink class="btn" href="Account/Login">
-                            Login
-                        </NavLink>
-                    </li>
-                </NotAuthorized>
-            </AuthorizeView>
-        </ul>
-    </nav>
+    <ul>
+        <li class="nav-item">
+            <NavLink class="btn" href="" Match="NavLinkMatch.Prefix">
+                Home
+            </NavLink>
+        </li>
+        <li>
+            <NavLink class="btn" href="about-us" Match="NavLinkMatch.Prefix">
+                About Us
+            </NavLink>
+        </li>
+        <li>
+            <NavLink class="btn" href="news" Match="NavLinkMatch.Prefix">
+                News
+            </NavLink>
+        </li>
+        <li>
+            <NavLink class="btn" href="contact" Match="NavLinkMatch.Prefix">
+                Contact
+            </NavLink>
+        </li>
+        <li>
+            <NavLink class="btn" href="book">
+                Book
+            </NavLink>
+        </li>
+        <AuthorizeView>
+            <Authorized Context="authContext">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        @authContext.User.Identity?.Name
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="userDropdown">
+                        <NavLink class="btn" style="margin-left: 25px" href="mybookings">My Bookings</NavLink>
+                        <NavLink class="btn" style="margin-left: 25px" href="Account/Manage">Dashboard</NavLink>
+                        <div class="dropdown-divider"></div>
+                        <form action="Account/Logout" method="post" class="px-3">
+                            <AntiforgeryToken />
+                            <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                            <button type="submit" class="btn">Logout</button>
+                        </form>
+                    </div>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li>
+                    <NavLink class="btn" href="Account/Register">
+                        Register
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink class="btn" href="Account/Login">
+                        Login
+                    </NavLink>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
+    </ul>
 </div>
 <!-- Offcanvas Menu Section End -->
 

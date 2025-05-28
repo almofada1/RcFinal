@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
 
 <HeadContent>
     <!-- Google Font -->
@@ -33,35 +34,37 @@
 </div>
 
 <script>
-    window.hotelPageInit = () => {
-        // the classic set-bg handler from the template
-        document.querySelectorAll('.set-bg').forEach(el => {
-            const bg = el.getAttribute('data-setbg');
-            if (bg) el.style.backgroundImage = `url('${bg}')`;
-        });
-        // re-init Owl Carousel (adjust selectors & options to match your template)
-        $(document).ready(function () {
-            $('.hero-slider.owl-carousel').owlCarousel({
-                items: 1,
-                loop: true,
-                autoplay: true,
-                autoplayTimeout: 5000
-            });
-        });
-        // any other JS that your template normally runs on load…
+    // define a global setup function
+    window.setupOffcanvas = () => {
+      // open
+      document.querySelectorAll('.canvas-open').forEach(btn =>
+        btn.addEventListener('click', () => {
+          document.querySelector('.offcanvas-menu-wrapper')
+                  .classList.add('show-offcanvas-menu-wrapper');
+          document.querySelector('.offcanvas-menu-overlay')
+                  .classList.add('active');
+        })
+      );
+      // close
+      document.querySelectorAll('.canvas-close, .offcanvas-menu-overlay')
+              .forEach(el => el.addEventListener('click', () => {
+        document.querySelector('.offcanvas-menu-wrapper')
+                .classList.remove('show-offcanvas-menu-wrapper');
+        document.querySelector('.offcanvas-menu-overlay')
+                .classList.remove('active');
+      }));
     };
 </script>
-<script>
-    $(function () {
-        $('.dropdown-toggle').dropdown();
-    });
-</script>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/jquery.magnific-popup.min.js"></script>
-<script src="js/jquery.nice-select.min.js"></script>
-<script src="js/jquery-ui.min.js"></script>
-<script src="js/jquery.slicknav.js"></script>
-<script src="js/owl.carousel.min.js"></script>
-<script src="js/main.js"></script>
+
+@code {
+    private bool _offcanvasInitialized;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_offcanvasInitialized)
+        {
+            _offcanvasInitialized = true;
+            await JS.InvokeVoidAsync("setupOffcanvas");
+        }
+    }
+}
